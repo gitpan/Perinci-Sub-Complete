@@ -1,0 +1,191 @@
+NAME
+    Perinci::Sub::Complete - Shell completion routines using Rinci metadata
+
+VERSION
+    version 0.32
+
+SYNOPSIS
+     # require'd by Perinci::CmdLine when shell completion is enabled
+
+DESCRIPTION
+    This module provides functionality for doing shell completion. It is
+    meant to be used by Perinci::CmdLine, but nevertheless some routines are
+    reusable outside it.
+
+FUNCTIONS
+  complete_arg_val(%args) -> [status, msg, result, meta]
+    Given argument name and function metadata, complete value.
+
+    Arguments ('*' denotes required arguments):
+
+    *   arg* => *str*
+
+        Argument name.
+
+    *   ci => *bool* (default: 0)
+
+        Whether to be case-insensitive.
+
+    *   meta* => *hash*
+
+        Rinci function metadata.
+
+    *   word => *str* (default: "")
+
+        Word to be completed.
+
+    Return value:
+
+    Returns an enveloped result (an array). First element (status) is an
+    integer containing HTTP status code (200 means OK, 4xx caller error, 5xx
+    function error). Second element (msg) is a string containing error
+    message, or 'OK' if status is 200. Third element (result) is optional,
+    the actual result. Fourth element (meta) is called result metadata and
+    is optional, a hash that contains extra information.
+
+  shell_complete_arg(%args) -> [status, msg, result, meta]
+    Complete command-line argument using Rinci function metadata.
+
+    Assuming that command-line like:
+
+        foo a b c
+
+    is executing some function, and the command-line arguments will be
+    parsed using "Perinci::Sub::GetArgs::Argv", then try to complete
+    command-line arguments using information from Rinci metadata.
+
+    Algorithm:
+
+    1.  If word begins with "$", we complete from environment variables and
+        are done.
+
+    2.  Call "get_args_from_argv()" to extract hash arguments from the given
+        "words".
+
+    3.  Determine whether we need to complete argument name (e.g.
+        "--arg<tab">) or argument value (e.g. "--arg1 <tab"> or "<tab"> at
+        1st word where there is an argument specified at pos=0).
+
+    4.  Call "custom_completer" if defined. If a list of words is returned,
+        we're done. This can be used for, e.g. nested function call, e.g.:
+
+        somecmd --opt-for-cmd ... subcmd --opt-for-subcmd ...
+
+    5.  If we are completing argument name, then supply a list of possible
+        argument names, or fallback to completing filenames.
+
+    6.  If we are completing argument value, first check if
+        "custom_arg_completer" is defined. If yes, call that routine. If a
+        list of words is returned, we're done. Fallback to completing
+        argument values from information in Rinci metadata (using
+        "complete_arg_val()" function).
+
+    Arguments ('*' denotes required arguments):
+
+    *   common_opts => *array* (default: [["--help", "-?", "-h"]])
+
+        Common options.
+
+        When completing argument name, this list will be added.
+
+    *   custom_arg_completer => *code|hash*
+
+        Supply custom argument value completion routines.
+
+        Either code or a hash of argument names and codes.
+
+        If supplied, instead of the default completion routine, this code
+        will be called instead. Refer to function description to see when
+        this routine is called.
+
+        Code will be called with hash arguments containing these keys:
+        "word" (string, the word to be completed), "arg" (string, the
+        argument name that we are completing the value of), "args" (hash,
+        the arguments that have been collected so far).
+
+        A use-case for using this option: getting argument value from Riap
+        client using the "complete_arg_val" action. This allows getting
+        completion from remote server.
+
+    *   custom_completer => *code*
+
+        Supply custom completion routine.
+
+        If supplied, instead of the default completion routine, this code
+        will be called instead. Refer to function description to see when
+        this routine is called.
+
+        Code will be called with a hash argument, with these keys: "which"
+        (a string with value "name" or "value" depending on whether we
+        should complete argument name or value), "words" (an array, the
+        command line split into words), "cword" (int, position of word in
+        "words"), "word" (the word to be completed), "parent_args" (hash),
+        "remaining_words" (array, slice of "words" after "cword"), "meta"
+        (the Rinci function metadata).
+
+        Code should return an arrayref of completion, or "undef" to declare
+        declination, on which case completion will resume using the standard
+        builtin routine.
+
+        A use-case of using this option: XXX.
+
+    *   cword => *int*
+
+        On which word cursor is located (zero-based).
+
+        If unset, will be taken from COMP*LINE and COMP*POINT.
+
+    *   words => *array*
+
+        Command-line, broken as words.
+
+        If unset, will be taken from COMP*LINE and COMP*POINT.
+
+    Return value:
+
+    Returns an enveloped result (an array). First element (status) is an
+    integer containing HTTP status code (200 means OK, 4xx caller error, 5xx
+    function error). Second element (msg) is a string containing error
+    message, or 'OK' if status is 200. Third element (result) is optional,
+    the actual result. Fourth element (meta) is called result metadata and
+    is optional, a hash that contains extra information.
+
+BUGS/LIMITATIONS/TODOS
+    Due to parsing limitation (invokes subshell), can't complete unclosed
+    quotes, e.g.
+
+     foo "bar <tab>
+
+    while shell function can complete this because they are provided
+    "COMP_WORDS" and "COMP_CWORD" by bash.
+
+SEE ALSO
+    Perinci::CmdLine
+
+    Other shell completion modules on CPAN: Getopt::Complete,
+    Bash::Completion.
+
+HOMEPAGE
+    Please visit the project's homepage at
+    <https://metacpan.org/release/Perinci-Sub-Complete>.
+
+SOURCE
+    Source repository is at
+    <https://github.com/sharyanto/perl-Perinci-BashComplete>.
+
+BUGS
+    Please report any bugs or feature requests on the bugtracker website
+    http://rt.cpan.org/Public/Dist/Display.html?Name=Perinci-Sub-Complete
+
+    When submitting a bug or request, please include a test-file or a patch
+    to an existing test-file that illustrates the bug or desired feature.
+
+AUTHOR
+    Steven Haryanto <stevenharyanto@gmail.com>
+
+COPYRIGHT AND LICENSE
+    This software is copyright (c) 2013 by Steven Haryanto.
+
+    This is free software; you can redistribute it and/or modify it under
+    the same terms as the Perl 5 programming language system itself.
+
