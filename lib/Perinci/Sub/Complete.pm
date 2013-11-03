@@ -13,7 +13,7 @@ use SHARYANTO::Complete::Util qw(
                                     parse_shell_cmdline
                             );
 
-our $VERSION = '0.32'; # VERSION
+our $VERSION = '0.33'; # VERSION
 
 require Exporter;
 our @ISA       = qw(Exporter);
@@ -320,7 +320,7 @@ sub shell_complete_arg {
         # custom_completer can decline by returning undef
         my $newcword = $cword - (@$words - @$remaining_words);
         $newcword = 0 if $newcword < 0;
-        my $res = $args{custom_completer}->(
+        $res = $args{custom_completer}->(
             which => $which,
             words => $words,
             cword => $newcword,
@@ -343,27 +343,23 @@ sub shell_complete_arg {
             if (ref($cac) eq 'HASH') {
                 if ($cac->{$arg}) {
                     $log->tracef("calling 'custom_arg_completer'->{%s}", $arg);
-                    return complete_array(
-                        word => $word,
-                        array => [$cac->{$arg}->(
-                            word => $word, arg => $arg, args => $args,
-                        )]
-                    );
+                    $res = $cac->{$arg}->(word => $word, arg => $arg);
+                    if ($res) {
+                        return complete_array(word => $word, array => $res);
+                    }
                 }
             } else {
                 $log->tracef("calling 'custom_arg_completer' (arg=%s)", $arg);
-                return complete_array(
-                    word  => $word,
-                    array => [$cac->(
-                        word => $word, arg => $arg, args => $args,
-                    )]
-                );
+                $res = $cac->(word => $word, arg => $arg);
+                if ($res) {
+                    return complete_array(word => $word, array => $res);
+                }
             }
         }
 
-        my $words = complete_arg_val(meta=>$meta, arg=>$arg, word=>$word);
+        $res = complete_arg_val(meta=>$meta, arg=>$arg, word=>$word);
 
-        return $words if @$words;
+        return $res if $res && @$res;
 
         # fallback to file
         $log->tracef("completing arg value from file (fallback)");
@@ -441,7 +437,7 @@ Perinci::Sub::Complete - Shell completion routines using Rinci metadata
 
 =head1 VERSION
 
-version 0.32
+version 0.33
 
 =head1 SYNOPSIS
 
@@ -639,7 +635,7 @@ Please visit the project's homepage at L<https://metacpan.org/release/Perinci-Su
 
 =head1 SOURCE
 
-Source repository is at L<https://github.com/sharyanto/perl-Perinci-BashComplete>.
+Source repository is at L<https://github.com/sharyanto/perl-Perinci-Sub-Complete>.
 
 =head1 BUGS
 

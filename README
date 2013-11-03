@@ -2,7 +2,7 @@ NAME
     Perinci::Sub::Complete - Shell completion routines using Rinci metadata
 
 VERSION
-    version 0.32
+    version 0.33
 
 SYNOPSIS
      # require'd by Perinci::CmdLine when shell completion is enabled
@@ -171,7 +171,7 @@ HOMEPAGE
 
 SOURCE
     Source repository is at
-    <https://github.com/sharyanto/perl-Perinci-BashComplete>.
+    <https://github.com/sharyanto/perl-Perinci-Sub-Complete>.
 
 BUGS
     Please report any bugs or feature requests on the bugtracker website
