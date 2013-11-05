@@ -13,11 +13,12 @@ use SHARYANTO::Complete::Util qw(
                                     parse_shell_cmdline
                             );
 
-our $VERSION = '0.33'; # VERSION
+our $VERSION = '0.34'; # VERSION
 
 require Exporter;
 our @ISA       = qw(Exporter);
 our @EXPORT_OK = qw(
+                       complete_arg_val
                        shell_complete_arg
                );
 our %SPEC;
@@ -44,8 +45,20 @@ $SPEC{complete_arg_val} = {
             summary => 'Whether to be case-insensitive',
             schema => ['bool*', default => 0],
         },
+        args => {
+            summary => 'Collected arguments so far, '.
+                'will be passed to completion routines',
+            schema  => 'hash',
+        },
+        parent_args => {
+            summary => 'To pass parent arguments to completion routines',
+            schema  => 'hash',
+        },
     },
     result_naked => 1,
+    result => {
+        schema => 'array*', # XXX of => str*
+    },
 };
 sub complete_arg_val {
     my %args = @_;
@@ -55,6 +68,8 @@ sub complete_arg_val {
     my $ci   = $args{ci} // 0;
     my $word = $args{word} // '';
 
+    # XXX reject if meta's v is not 1.1
+
     my $args_p = $meta->{args} // {};
     my $arg_p = $args_p->{$arg} or return [];
 
@@ -62,21 +77,29 @@ sub complete_arg_val {
     eval { # completion sub can die, etc.
 
         if ($arg_p->{completion}) {
-            $words = $arg_p->{completion}(word=>$word, ci=>$ci);
+            $words = $arg_p->{completion}->(
+                word=>$word, ci=>$ci, args=>$args{args}, parent_args=>\%args);
             die "Completion sub does not return array"
                 unless ref($words) eq 'ARRAY';
             return;
         }
 
         my $sch = $arg_p->{schema};
+        return unless $sch;
+
+        # XXX normalize schema if not normalized
 
         my ($type, $cs) = @{$sch};
+        if ($cs->{is}) {
+            $words = [$cs->{is}];
+            return;
+        }
         if ($cs->{in}) {
             $words = $cs->{in};
             return;
         }
 
-        if ($type =~ /^int\*?$/) {
+        if ($type =~ /\Aint\*?\z/) {
             my $limit = 100;
             if ($cs->{between} &&
                     $cs->{between}[0] - $cs->{between}[0] <= $limit) {
@@ -103,6 +126,9 @@ sub complete_arg_val {
                 $words = [$cs->{min}+1 .. $cs->{max}-1];
                 return;
             }
+        } elsif ($type =~ /\Abool\*?\z/) {
+            $words = [0, 1];
+            return;
         }
 
         $words = [];
@@ -150,6 +176,11 @@ Fallback to completing argument values from information in Rinci metadata (using
 
 _
     args => {
+        meta => {
+            summary => 'Rinci function metadata',
+            schema => 'hash*',
+            req => 1,
+        },
         words => {
             summary => 'Command-line, broken as words',
             schema => ['array*' => {of=>'str*'}],
@@ -179,8 +210,9 @@ Code will be called with a hash argument, with these keys: `which` (a string
 with value `name` or `value` depending on whether we should complete argument
 name or value), `words` (an array, the command line split into words), `cword`
 (int, position of word in `words`), `word` (the word to be completed),
-`parent_args` (hash), `remaining_words` (array, slice of `words` after `cword`),
-`meta` (the Rinci function metadata).
+`parent_args` (hash, arguments given to `shell_complete_arg()`), `args` (hash,
+parsed function arguments from `words`) `remaining_words` (array, slice of
+`words` after `cword`), `meta` (the Rinci function metadata).
 
 Code should return an arrayref of completion, or `undef` to declare declination,
 on which case completion will resume using the standard builtin routine.
@@ -202,7 +234,7 @@ instead. Refer to function description to see when this routine is called.
 Code will be called with hash arguments containing these keys: `word` (string,
 the word to be completed), `arg` (string, the argument name that we are
 completing the value of), `args` (hash, the arguments that have been collected
-so far).
+so far), `parent_args`.
 
 A use-case for using this option: getting argument value from Riap client using
 the `complete_arg_val` action. This allows getting completion from remote
@@ -229,8 +261,15 @@ _
                 default=>[['--help', '-?', '-h']],
             }],
         },
+        extra_completer_args => {
+            summary => 'Arguments to pass to custom completion routines',
+            schema  => 'hash*',
+        },
     },
     result_naked => 1,
+    result => {
+        schema => 'array*', # XXX of => str*
+    },
 };
 sub shell_complete_arg {
     require Perinci::Sub::GetArgs::Argv;
@@ -313,7 +352,8 @@ sub shell_complete_arg {
         $word = $words->[$cword] = $2;
         $which = 'value';
     }
-    $log->tracef("we should complete arg $which, arg=%s, word=%s", $arg, $word);
+    $log->tracef("we should complete arg $which, arg=<%s>, word=<%s>",
+                 $arg, $word);
 
     if ($args{custom_completer}) {
         $log->tracef("calling 'custom_completer'");
@@ -325,7 +365,8 @@ sub shell_complete_arg {
             words => $words,
             cword => $newcword,
             word  => $word,
-            parent_args => $args,
+            args  => $args,
+            parent_args => \%args,
             meta  => $meta,
             remaining_words => $remaining_words,
         );
@@ -343,23 +384,29 @@ sub shell_complete_arg {
             if (ref($cac) eq 'HASH') {
                 if ($cac->{$arg}) {
                     $log->tracef("calling 'custom_arg_completer'->{%s}", $arg);
-                    $res = $cac->{$arg}->(word => $word, arg => $arg);
+                    $res = $cac->{$arg}->(
+                        word=>$word, arg=>$arg, args=>$args,
+                        parent_args=>\%args,
+                    );
                     if ($res) {
                         return complete_array(word => $word, array => $res);
                     }
                 }
             } else {
                 $log->tracef("calling 'custom_arg_completer' (arg=%s)", $arg);
-                $res = $cac->(word => $word, arg => $arg);
+                $res = $cac->(
+                    word=>$word, arg=>$arg, args=>$args, parent_args=>\%args);
                 if ($res) {
                     return complete_array(word => $word, array => $res);
                 }
             }
         }
 
-        $res = complete_arg_val(meta=>$meta, arg=>$arg, word=>$word);
-
-        return $res if $res && @$res;
+        $res = complete_arg_val(
+            meta=>$meta, arg=>$arg, word=>$word,
+            args=>$args, parent_args=>\%args,
+        );
+        return $res if $res;
 
         # fallback to file
         $log->tracef("completing arg value from file (fallback)");
@@ -437,7 +484,7 @@ Perinci::Sub::Complete - Shell completion routines using Rinci metadata
 
 =head1 VERSION
 
-version 0.33
+version 0.34
 
 =head1 SYNOPSIS
 
@@ -452,7 +499,7 @@ it.
 =head1 FUNCTIONS
 
 
-=head2 complete_arg_val(%args) -> [status, msg, result, meta]
+=head2 complete_arg_val(%args) -> array
 
 Given argument name and function metadata, complete value.
 
@@ -464,6 +511,10 @@ Arguments ('*' denotes required arguments):
 
 Argument name.
 
+=item * B<args> => I<hash>
+
+Collected arguments so far, will be passed to completion routines.
+
 =item * B<ci> => I<bool> (default: 0)
 
 Whether to be case-insensitive.
@@ -471,6 +522,10 @@ Whether to be case-insensitive.
 =item * B<meta>* => I<hash>
 
 Rinci function metadata.
+
+=item * B<parent_args> => I<hash>
+
+To pass parent arguments to completion routines.
 
 =item * B<word> => I<str> (default: "")
 
@@ -480,9 +535,7 @@ Word to be completed.
 
 Return value:
 
-Returns an enveloped result (an array). First element (status) is an integer containing HTTP status code (200 means OK, 4xx caller error, 5xx function error). Second element (msg) is a string containing error message, or 'OK' if status is 200. Third element (result) is optional, the actual result. Fourth element (meta) is called result metadata and is optional, a hash that contains extra information.
-
-=head2 shell_complete_arg(%args) -> [status, msg, result, meta]
+=head2 shell_complete_arg(%args) -> array
 
 Complete command-line argument using Rinci function metadata.
 
@@ -567,7 +620,7 @@ instead. Refer to function description to see when this routine is called.
 Code will be called with hash arguments containing these keys: C<word> (string,
 the word to be completed), C<arg> (string, the argument name that we are
 completing the value of), C<args> (hash, the arguments that have been collected
-so far).
+so far), C<parent_args>.
 
 A use-case for using this option: getting argument value from Riap client using
 the C<complete_arg_val> action. This allows getting completion from remote
@@ -584,8 +637,9 @@ Code will be called with a hash argument, with these keys: C<which> (a string
 with value C<name> or C<value> depending on whether we should complete argument
 name or value), C<words> (an array, the command line split into words), C<cword>
 (int, position of word in C<words>), C<word> (the word to be completed),
-C<parent_args> (hash), C<remaining_words> (array, slice of C<words> after C<cword>),
-C<meta> (the Rinci function metadata).
+C<parent_args> (hash, arguments given to C<shell_complete_arg()>), C<args> (hash,
+parsed function arguments from C<words>) C<remaining_words> (array, slice of
+C<words> after C<cword>), C<meta> (the Rinci function metadata).
 
 Code should return an arrayref of completion, or C<undef> to declare declination,
 on which case completion will resume using the standard builtin routine.
@@ -598,6 +652,14 @@ On which word cursor is located (zero-based).
 
 If unset, will be taken from COMPI<LINE and COMP>POINT.
 
+=item * B<extra_completer_args> => I<hash>
+
+Arguments to pass to custom completion routines.
+
+=item * B<meta>* => I<hash>
+
+Rinci function metadata.
+
 =item * B<words> => I<array>
 
 Command-line, broken as words.
@@ -607,8 +669,6 @@ If unset, will be taken from COMPI<LINE and COMP>POINT.
 =back
 
 Return value:
-
-Returns an enveloped result (an array). First element (status) is an integer containing HTTP status code (200 means OK, 4xx caller error, 5xx function error). Second element (msg) is a string containing error message, or 'OK' if status is 200. Third element (result) is optional, the actual result. Fourth element (meta) is called result metadata and is optional, a hash that contains extra information.
 
 =for Pod::Coverage ^(.+)$
 

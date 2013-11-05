@@ -2,7 +2,7 @@ NAME
     Perinci::Sub::Complete - Shell completion routines using Rinci metadata
 
 VERSION
-    version 0.33
+    version 0.34
 
 SYNOPSIS
      # require'd by Perinci::CmdLine when shell completion is enabled
@@ -13,7 +13,7 @@ DESCRIPTION
     reusable outside it.
 
 FUNCTIONS
-  complete_arg_val(%args) -> [status, msg, result, meta]
+  complete_arg_val(%args) -> array
     Given argument name and function metadata, complete value.
 
     Arguments ('*' denotes required arguments):
@@ -21,6 +21,10 @@ FUNCTIONS
     *   arg* => *str*
 
         Argument name.
+
+    *   args => *hash*
+
+        Collected arguments so far, will be passed to completion routines.
 
     *   ci => *bool* (default: 0)
 
@@ -30,20 +34,17 @@ FUNCTIONS
 
         Rinci function metadata.
 
+    *   parent_args => *hash*
+
+        To pass parent arguments to completion routines.
+
     *   word => *str* (default: "")
 
         Word to be completed.
 
     Return value:
 
-    Returns an enveloped result (an array). First element (status) is an
-    integer containing HTTP status code (200 means OK, 4xx caller error, 5xx
-    function error). Second element (msg) is a string containing error
-    message, or 'OK' if status is 200. Third element (result) is optional,
-    the actual result. Fourth element (meta) is called result metadata and
-    is optional, a hash that contains extra information.
-
-  shell_complete_arg(%args) -> [status, msg, result, meta]
+  shell_complete_arg(%args) -> array
     Complete command-line argument using Rinci function metadata.
 
     Assuming that command-line like:
@@ -101,7 +102,7 @@ FUNCTIONS
         Code will be called with hash arguments containing these keys:
         "word" (string, the word to be completed), "arg" (string, the
         argument name that we are completing the value of), "args" (hash,
-        the arguments that have been collected so far).
+        the arguments that have been collected so far), "parent_args".
 
         A use-case for using this option: getting argument value from Riap
         client using the "complete_arg_val" action. This allows getting
@@ -119,9 +120,10 @@ FUNCTIONS
         (a string with value "name" or "value" depending on whether we
         should complete argument name or value), "words" (an array, the
         command line split into words), "cword" (int, position of word in
-        "words"), "word" (the word to be completed), "parent_args" (hash),
-        "remaining_words" (array, slice of "words" after "cword"), "meta"
-        (the Rinci function metadata).
+        "words"), "word" (the word to be completed), "parent_args" (hash,
+        arguments given to "shell_complete_arg()"), "args" (hash, parsed
+        function arguments from "words") "remaining_words" (array, slice of
+        "words" after "cword"), "meta" (the Rinci function metadata).
 
         Code should return an arrayref of completion, or "undef" to declare
         declination, on which case completion will resume using the standard
@@ -135,6 +137,14 @@ FUNCTIONS
 
         If unset, will be taken from COMP*LINE and COMP*POINT.
 
+    *   extra_completer_args => *hash*
+
+        Arguments to pass to custom completion routines.
+
+    *   meta* => *hash*
+
+        Rinci function metadata.
+
     *   words => *array*
 
         Command-line, broken as words.
@@ -142,13 +152,6 @@ FUNCTIONS
         If unset, will be taken from COMP*LINE and COMP*POINT.
 
     Return value:
-
-    Returns an enveloped result (an array). First element (status) is an
-    integer containing HTTP status code (200 means OK, 4xx caller error, 5xx
-    function error). Second element (msg) is a string containing error
-    message, or 'OK' if status is 200. Third element (result) is optional,
-    the actual result. Fourth element (meta) is called result metadata and
-    is optional, a hash that contains extra information.
 
 BUGS/LIMITATIONS/TODOS
     Due to parsing limitation (invokes subshell), can't complete unclosed
