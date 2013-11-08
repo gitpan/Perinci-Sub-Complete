@@ -7,12 +7,12 @@ build_requires:
   File::Which: 0
   IO::Handle: 0
   IPC::Open3: 0
-  Perinci::Sub::Wrapper: 0
+  Perinci::Sub::Wrapper: 0.47
   Test::More: 0.98
 configure_requires:
   ExtUtils::MakeMaker: 6.30
 dynamic_config: 0
-generated_by: 'Dist::Zilla version 5.001, CPAN::Meta::Converter version 2.132140'
+generated_by: 'Dist::Zilla version 4.300038, CPAN::Meta::Converter version 2.132510'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -26,5 +26,8 @@ requires:
   UUID::Random: 0
   experimental: 0
   perl: 5.010001
-resources: {}
-version: 0.34
+resources:
+  bugtracker: https://rt.cpan.org/Public/Dist/Display.html?Name=Perinci-Sub-Complete
+  homepage: https://metacpan.org/release/Perinci-Sub-Complete
+  repository: git://github.com/sharyanto/perl-Perinci-Sub-Complete.git
+version: 0.35

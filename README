@@ -2,7 +2,7 @@ NAME
     Perinci::Sub::Complete - Shell completion routines using Rinci metadata
 
 VERSION
-    version 0.34
+    version 0.35
 
 SYNOPSIS
      # require'd by Perinci::CmdLine when shell completion is enabled
@@ -13,9 +13,9 @@ DESCRIPTION
     reusable outside it.
 
 FUNCTIONS
-  complete_arg_val(%args) -> array
-    Given argument name and function metadata, complete value.
+    None are exported by default, but they are exportable.
 
+  complete_arg_val(%args) -> array
     Arguments ('*' denotes required arguments):
 
     *   arg* => *str*
@@ -45,8 +45,6 @@ FUNCTIONS
     Return value:
 
   shell_complete_arg(%args) -> array
-    Complete command-line argument using Rinci function metadata.
-
     Assuming that command-line like:
 
         foo a b c
@@ -178,7 +176,7 @@ SOURCE
 
 BUGS
     Please report any bugs or feature requests on the bugtracker website
-    http://rt.cpan.org/Public/Dist/Display.html?Name=Perinci-Sub-Complete
+    <https://rt.cpan.org/Public/Dist/Display.html?Name=Perinci-Sub-Complete>
 
     When submitting a bug or request, please include a test-file or a patch
     to an existing test-file that illustrates the bug or desired feature.

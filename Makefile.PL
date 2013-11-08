@@ -32,36 +32,40 @@ my %WriteMakefileArgs = (
     "File::Which" => 0,
     "IO::Handle" => 0,
     "IPC::Open3" => 0,
-    "Perinci::Sub::Wrapper" => 0,
+    "Perinci::Sub::Wrapper" => "0.47",
     "Test::More" => "0.98"
   },
-  "VERSION" => "0.34",
+  "VERSION" => "0.35",
   "test" => {
     "TESTS" => "t/*.t"
   }
 );
 
 
-my %FallbackPrereqs = (
-  "File::Spec" => 0,
-  "File::Which" => 0,
-  "IO::Handle" => 0,
-  "IPC::Open3" => 0,
-  "Log::Any" => 0,
-  "Perinci::Sub::GetArgs::Argv" => "0.13",
-  "Perinci::Sub::Wrapper" => 0,
-  "Rinci" => "v1.1.10",
-  "SHARYANTO::Complete::Util" => 0,
-  "Test::More" => "0.98",
-  "UUID::Random" => 0,
-  "experimental" => 0
-);
-
-
 unless ( eval { ExtUtils::MakeMaker->VERSION(6.63_03) } ) {
-  delete $WriteMakefileArgs{TEST_REQUIRES};
-  delete $WriteMakefileArgs{BUILD_REQUIRES};
-  $WriteMakefileArgs{PREREQ_PM} = \%FallbackPrereqs;
+  my $tr = delete $WriteMakefileArgs{TEST_REQUIRES};
+  my $br = $WriteMakefileArgs{BUILD_REQUIRES};
+  for my $mod ( keys %$tr ) {
+    if ( exists $br->{$mod} ) {
+      $br->{$mod} = $tr->{$mod} if $tr->{$mod} > $br->{$mod};
+    }
+    else {
+      $br->{$mod} = $tr->{$mod};
+    }
+  }
+}
+
+unless ( eval { ExtUtils::MakeMaker->VERSION(6.56) } ) {
+  my $br = delete $WriteMakefileArgs{BUILD_REQUIRES};
+  my $pp = $WriteMakefileArgs{PREREQ_PM};
+  for my $mod ( keys %$br ) {
+    if ( exists $pp->{$mod} ) {
+      $pp->{$mod} = $br->{$mod} if $br->{$mod} > $pp->{$mod};
+    }
+    else {
+      $pp->{$mod} = $br->{$mod};
+    }
+  }
 }
 
 delete $WriteMakefileArgs{CONFIGURE_REQUIRES}

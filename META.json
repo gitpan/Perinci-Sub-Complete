@@ -4,7 +4,7 @@
       "Steven Haryanto <stevenharyanto@gmail.com>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Dist::Zilla version 5.001, CPAN::Meta::Converter version 2.132140",
+   "generated_by" : "Dist::Zilla version 4.300038, CPAN::Meta::Converter version 2.132510",
    "license" : [
       "perl_5"
    ],
@@ -44,13 +44,23 @@
             "File::Which" : "0",
             "IO::Handle" : "0",
             "IPC::Open3" : "0",
-            "Perinci::Sub::Wrapper" : "0",
+            "Perinci::Sub::Wrapper" : "0.47",
             "Test::More" : "0.98"
          }
       }
    },
    "release_status" : "stable",
-   "resources" : {},
-   "version" : "0.34"
+   "resources" : {
+      "bugtracker" : {
+         "web" : "https://rt.cpan.org/Public/Dist/Display.html?Name=Perinci-Sub-Complete"
+      },
+      "homepage" : "https://metacpan.org/release/Perinci-Sub-Complete",
+      "repository" : {
+         "type" : "git",
+         "url" : "git://github.com/sharyanto/perl-Perinci-Sub-Complete.git",
+         "web" : "https://github.com/sharyanto/perl-Perinci-Sub-Complete"
+      }
+   },
+   "version" : "0.35"
 }
 

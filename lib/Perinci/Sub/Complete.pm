@@ -13,7 +13,7 @@ use SHARYANTO::Complete::Util qw(
                                     parse_shell_cmdline
                             );
 
-our $VERSION = '0.34'; # VERSION
+our $VERSION = '0.35'; # VERSION
 
 require Exporter;
 our @ISA       = qw(Exporter);
@@ -484,7 +484,7 @@ Perinci::Sub::Complete - Shell completion routines using Rinci metadata
 
 =head1 VERSION
 
-version 0.34
+version 0.35
 
 =head1 SYNOPSIS
 
@@ -499,9 +499,9 @@ it.
 =head1 FUNCTIONS
 
 
-=head2 complete_arg_val(%args) -> array
+None are exported by default, but they are exportable.
 
-Given argument name and function metadata, complete value.
+=head2 complete_arg_val(%args) -> array
 
 Arguments ('*' denotes required arguments):
 
@@ -536,8 +536,6 @@ Word to be completed.
 Return value:
 
 =head2 shell_complete_arg(%args) -> array
-
-Complete command-line argument using Rinci function metadata.
 
 Assuming that command-line like:
 
@@ -700,7 +698,7 @@ Source repository is at L<https://github.com/sharyanto/perl-Perinci-Sub-Complete
 =head1 BUGS
 
 Please report any bugs or feature requests on the bugtracker website
-http://rt.cpan.org/Public/Dist/Display.html?Name=Perinci-Sub-Complete
+L<https://rt.cpan.org/Public/Dist/Display.html?Name=Perinci-Sub-Complete>
 
 When submitting a bug or request, please include a test-file or a
 patch to an existing test-file that illustrates the bug or desired
