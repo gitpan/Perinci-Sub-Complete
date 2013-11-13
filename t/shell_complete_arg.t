@@ -267,6 +267,7 @@ test_complete(
     comp_point0 => '         ^',
     result      => [qw(--help --str3 -? -h)],
 );
+
 test_complete(
     name        => 'custom_completer (decline)',
     args        => {meta=>$meta2,
@@ -283,6 +284,7 @@ test_complete(
     comp_point0 => '         ^',
     result      => [qw(-a -b)],
 );
+
 
 my $meta3 = _normalize_meta({
     v => 1.1,
@@ -336,6 +338,219 @@ test_complete(
     comp_point0 => '       ^',
     result      => [qw(--dry-run)],
 );
+
+subtest "complete element value (schema)" => sub {
+    my $meta = _normalize_meta({
+        v => 1.1,
+        args => {
+            arg => {
+                schema => ["array*" => of => [str => in => [qw/a aa b c/]]],
+                pos    => 0,
+                greedy => 1,
+            },
+        },
+    });
+    test_complete(
+        args        => {meta=>$meta},
+        comp_line   => 'CMD ',
+        comp_point0 => '    ^',
+        result      => [qw(a aa b c)],
+    );
+    test_complete(
+        args        => {meta=>$meta},
+        comp_line   => 'CMD a',
+        comp_point0 => '     ^',
+        result      => [qw(a aa)],
+    );
+    test_complete(
+        args        => {meta=>$meta},
+        comp_line   => 'CMD -',
+        comp_point0 => '     ^',
+        result      => [qw(--arg --help -? -h)],
+    );
+    test_complete(
+        args        => {meta=>$meta},
+        comp_line   => 'CMD x ',
+        comp_point0 => '      ^',
+        result      => [qw(a aa b c)],
+    );
+    test_complete(
+        args        => {meta=>$meta},
+        comp_line   => 'CMD x a',
+        comp_point0 => '       ^',
+        result      => [qw(a aa)],
+    );
+    test_complete(
+        args        => {meta=>$meta},
+        comp_line   => 'CMD x -',
+        comp_point0 => '       ^',
+        result      => [qw(--arg --help -? -h)],
+    );
+    test_complete(
+        name        => '--arg is always completeable',
+        args        => {meta=>$meta},
+        comp_line   => 'CMD --arg x --',
+        comp_point0 => '              ^',
+        result      => [qw(--arg --help)],
+    );
+};
+
+subtest "complete element value (arg spec's element_completion)" => sub {
+    my $meta = _normalize_meta({
+        v => 1.1,
+        args => {
+            arg => {
+                schema => ["array*" => of => [str => in => [qw/a aa b c/]]],
+                element_completion => sub {[qw/d dd e f/]},
+                pos    => 0,
+                greedy => 1,
+            },
+        },
+    });
+    test_complete(
+        args        => {meta=>$meta},
+        comp_line   => 'CMD ',
+        comp_point0 => '    ^',
+        result      => [qw(d dd e f)],
+    );
+    test_complete(
+        args        => {meta=>$meta},
+        comp_line   => 'CMD d',
+        comp_point0 => '     ^',
+        result      => [qw(d dd)],
+    );
+    test_complete(
+        args        => {meta=>$meta},
+        comp_line   => 'CMD -',
+        comp_point0 => '     ^',
+        result      => [qw(--arg --help -? -h)],
+    );
+    test_complete(
+        args        => {meta=>$meta},
+        comp_line   => 'CMD x ',
+        comp_point0 => '      ^',
+        result      => [qw(d dd e f)],
+    );
+    test_complete(
+        args        => {meta=>$meta},
+        comp_line   => 'CMD x d',
+        comp_point0 => '       ^',
+        result      => [qw(d dd)],
+    );
+    test_complete(
+        args        => {meta=>$meta},
+        comp_line   => 'CMD x -',
+        comp_point0 => '       ^',
+        result      => [qw(--arg --help -? -h)],
+    );
+    # XXX test element_completion declines -> fallback to schema
+};
+
+subtest "complete element value (custom_arg_element_completer HoC)" => sub {
+    my $meta = _normalize_meta({
+        v => 1.1,
+        args => {
+            arg => {
+                schema => ["array*" => of => [str => in => [qw/a aa b c/]]],
+                element_completion => sub {[qw/d dd e f/]},
+                pos    => 0,
+                greedy => 1,
+            },
+        },
+    });
+    my $caec = {
+        arg => sub {[qw/g gg h i/]},
+    };
+    test_complete(
+        args        => {meta=>$meta, custom_arg_element_completer=>$caec},
+        comp_line   => 'CMD ',
+        comp_point0 => '    ^',
+        result      => [qw(g gg h i)],
+    );
+    test_complete(
+        args        => {meta=>$meta, custom_arg_element_completer=>$caec},
+        comp_line   => 'CMD g',
+        comp_point0 => '     ^',
+        result      => [qw(g gg)],
+    );
+    test_complete(
+        args        => {meta=>$meta, custom_arg_element_completer=>$caec},
+        comp_line   => 'CMD -',
+        comp_point0 => '     ^',
+        result      => [qw(--arg --help -? -h)],
+    );
+    test_complete(
+        args        => {meta=>$meta, custom_arg_element_completer=>$caec},
+        comp_line   => 'CMD x ',
+        comp_point0 => '      ^',
+        result      => [qw(g gg h i)],
+    );
+    test_complete(
+        args        => {meta=>$meta, custom_arg_element_completer=>$caec},
+        comp_line   => 'CMD x g',
+        comp_point0 => '       ^',
+        result      => [qw(g gg)],
+    );
+    test_complete(
+        args        => {meta=>$meta, custom_arg_element_completer=>$caec},
+        comp_line   => 'CMD x -',
+        comp_point0 => '       ^',
+        result      => [qw(--arg --help -? -h)],
+    );
+    # XXX test custom_arg_element_completer declines -> fallback to element_completion
+};
+
+subtest "complete element value (custom_arg_element_completer Code)" => sub {
+    my $meta = _normalize_meta({
+        v => 1.1,
+        args => {
+            arg => {
+                schema => ["array*" => of => [str => in => [qw/a aa b c/]]],
+                element_completion => sub {[qw/d dd e f/]},
+                pos    => 0,
+                greedy => 1,
+            },
+        },
+    });
+    my $caec = sub {[qw/g gg h i/]};
+    test_complete(
+        args        => {meta=>$meta, custom_arg_element_completer=>$caec},
+        comp_line   => 'CMD ',
+        comp_point0 => '    ^',
+        result      => [qw(g gg h i)],
+    );
+    test_complete(
+        args        => {meta=>$meta, custom_arg_element_completer=>$caec},
+        comp_line   => 'CMD g',
+        comp_point0 => '     ^',
+        result      => [qw(g gg)],
+    );
+    test_complete(
+        args        => {meta=>$meta, custom_arg_element_completer=>$caec},
+        comp_line   => 'CMD -',
+        comp_point0 => '     ^',
+        result      => [qw(--arg --help -? -h)],
+    );
+    test_complete(
+        args        => {meta=>$meta, custom_arg_element_completer=>$caec},
+        comp_line   => 'CMD x ',
+        comp_point0 => '      ^',
+        result      => [qw(g gg h i)],
+    );
+    test_complete(
+        args        => {meta=>$meta, custom_arg_element_completer=>$caec},
+        comp_line   => 'CMD x g',
+        comp_point0 => '       ^',
+        result      => [qw(g gg)],
+    );
+    test_complete(
+        args        => {meta=>$meta, custom_arg_element_completer=>$caec},
+        comp_line   => 'CMD x -',
+        comp_point0 => '       ^',
+        result      => [qw(--arg --help -? -h)],
+    );
+    # XXX test custom_arg_element_completer declines -> fallback to element_completion
+};
 
 # XXX test ENV
 # XXX test fallback arg value to file
