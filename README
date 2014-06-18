@@ -2,16 +2,14 @@ NAME
     Perinci::Sub::Complete - Shell completion routines using Rinci metadata
 
 VERSION
-    This document describes version 0.37 of Perinci::Sub::Complete (from
+    This document describes version 0.38 of Perinci::Sub::Complete (from
     Perl distribution Perinci-Sub-Complete), released on 2014-06-18.
 
 SYNOPSIS
-     # require'd by Perinci::CmdLine when shell completion is enabled
-
 DESCRIPTION
     This module provides functionality for doing shell completion. It is
-    meant to be used by Perinci::CmdLine, but nevertheless some routines are
-    reusable outside it.
+    meant to be used by Perinci::CmdLine and other Rinci/Riap-based CLI
+    shell like App::riap.
 
 FUNCTIONS
   complete_arg_elem(%args) -> array
@@ -43,6 +41,28 @@ FUNCTIONS
 
         To pass parent arguments to completion routines.
 
+    *   riap_client => *obj*
+
+        Optional, to perform complete_arg_val to the server.
+
+        When the argument spec in the Rinci metadata contains "completion"
+        key, this means there is custom completion code for that argument.
+        However, if retrieved from a remote server, sometimes the
+        "completion" key no longer contains the code (it has been cleansed
+        into a string). Moreover, the completion code needs to run on the
+        server.
+
+        If supplied this argument and the "riap_uri" argument, the function
+        will try to request to the server (via Riap request
+        "complete_arg_val"). Otherwise, the function will just give
+        up/decline completing.
+
+    *   riap_uri => *str*
+
+        Optional, to perform complete_arg_val to the server.
+
+        See the "riap_client" argument.
+
     *   word => *str* (default: "")
 
         Word to be completed.
@@ -73,6 +93,28 @@ FUNCTIONS
     *   parent_args => *hash*
 
         To pass parent arguments to completion routines.
+
+    *   riap_client => *obj*
+
+        Optional, to perform complete_arg_val to the server.
+
+        When the argument spec in the Rinci metadata contains "completion"
+        key, this means there is custom completion code for that argument.
+        However, if retrieved from a remote server, sometimes the
+        "completion" key no longer contains the code (it has been cleansed
+        into a string). Moreover, the completion code needs to run on the
+        server.
+
+        If supplied this argument and the "riap_uri" argument, the function
+        will try to request to the server (via Riap request
+        "complete_arg_val"). Otherwise, the function will just give
+        up/decline completing.
+
+    *   riap_uri => *str*
+
+        Optional, to perform complete_arg_val to the server.
+
+        See the "riap_client" argument.
 
     *   word => *str* (default: "")
 
@@ -238,6 +280,28 @@ FUNCTIONS
     *   meta* => *hash*
 
         Rinci function metadata, must be normalized.
+
+    *   riap_client => *obj*
+
+        Optional, to perform complete_arg_val to the server.
+
+        When the argument spec in the Rinci metadata contains "completion"
+        key, this means there is custom completion code for that argument.
+        However, if retrieved from a remote server, sometimes the
+        "completion" key no longer contains the code (it has been cleansed
+        into a string). Moreover, the completion code needs to run on the
+        server.
+
+        If supplied this argument and the "riap_uri" argument, the function
+        will try to request to the server (via Riap request
+        "complete_arg_val"). Otherwise, the function will just give
+        up/decline completing.
+
+    *   riap_uri => *str*
+
+        Optional, to perform complete_arg_val to the server.
+
+        See the "riap_client" argument.
 
     *   words => *array*
 
