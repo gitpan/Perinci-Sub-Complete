@@ -15,7 +15,7 @@ use SHARYANTO::Complete::Util qw(
                                     parse_shell_cmdline
                             );
 
-our $VERSION = '0.36'; # VERSION
+our $VERSION = '0.37'; # VERSION
 
 require Exporter;
 our @ISA       = qw(Exporter);
@@ -62,54 +62,47 @@ sub complete_from_schema {
 
     my $words;
     eval {
-        if ($cs->{is}) {
-            $log->tracef("completing from 'is' clause");
-            $words = [$cs->{is}];
-            return; # from eval
+        if ($cs->{is} && !ref($cs->{is})) {
+            $log->tracef("adding completion from 'is' clause");
+            push @$words, $cs->{is};
+            return; # from eval. there should not be any other value
         }
         if ($cs->{in}) {
-            $log->tracef("completing from 'in' clause");
-            $words = $cs->{in};
-            return; # from eval
+            $log->tracef("adding completion from 'in' clause");
+            push @$words, grep {!ref($_)} @{ $cs->{in} };
+            return; # from eval. there should not be any other value
         }
-
+        if ($type =~ /\Abool\*?\z/) {
+            $log->tracef("adding completion from possible values of bool");
+            push @$words, 0, 1;
+        }
         if ($type =~ /\Aint\*?\z/) {
             my $limit = 100;
             if ($cs->{between} &&
                     $cs->{between}[0] - $cs->{between}[0] <= $limit) {
-                $log->tracef("completing from 'between' clause");
-                $words = [$cs->{between}[0] .. $cs->{between}[1]];
-                return; # from eval
+                $log->tracef("adding completion from 'between' clause");
+                push @$words, $cs->{between}[0] .. $cs->{between}[1];
             } elsif ($cs->{xbetween} &&
                          $cs->{xbetween}[0] - $cs->{xbetween}[0] <= $limit) {
-                $log->tracef("completing from 'xbetween' clause");
-                $words = [$cs->{xbetween}[0]+1 .. $cs->{xbetween}[1]-1];
-                return; # from eval
+                $log->tracef("adding completion from 'xbetween' clause");
+                push @$words, $cs->{xbetween}[0]+1 .. $cs->{xbetween}[1]-1;
             } elsif (defined($cs->{min}) && defined($cs->{max}) &&
                          $cs->{max}-$cs->{min} <= $limit) {
-                $log->tracef("completing from 'min' & 'max' clauses");
-                $words = [$cs->{min} .. $cs->{max}];
-                return; # from eval
+                $log->tracef("adding completion from 'min' & 'max' clauses");
+                push @$words, $cs->{min} .. $cs->{max};
             } elsif (defined($cs->{min}) && defined($cs->{xmax}) &&
                          $cs->{xmax}-$cs->{min} <= $limit) {
-                $log->tracef("completing from 'min' & 'xmax' clauses");
-                $words = [$cs->{min} .. $cs->{xmax}-1];
-                return; # from eval
+                $log->tracef("adding completion from 'min' & 'xmax' clauses");
+                push @$words, $cs->{min} .. $cs->{xmax}-1;
             } elsif (defined($cs->{xmin}) && defined($cs->{max}) &&
                          $cs->{max}-$cs->{xmin} <= $limit) {
-                $log->tracef("completing from 'xmin' & 'max' clauses");
-                $words = [$cs->{xmin}+1 .. $cs->{max}];
-                return; # from eval
+                $log->tracef("adding completion from 'xmin' & 'max' clauses");
+                push @$words, $cs->{xmin}+1 .. $cs->{max};
             } elsif (defined($cs->{xmin}) && defined($cs->{xmax}) &&
                          $cs->{xmax}-$cs->{xmin} <= $limit) {
-                $log->tracef("completing from 'xmin' & 'xmax' clauses");
-                $words = [$cs->{min}+1 .. $cs->{max}-1];
-                return; # from eval
+                $log->tracef("adding completion from 'xmin' & 'xmax' clauses");
+                push @$words, $cs->{min}+1 .. $cs->{max}-1;
             }
-        } elsif ($type =~ /\Abool\*?\z/) {
-            $log->tracef("completing from possible [0, 1] values of bool");
-            $words = [0, 1];
-            return; # from eval
         }
     }; # eval
 
@@ -122,7 +115,7 @@ $SPEC{complete_arg_val} = {
     summary => 'Given argument name and function metadata, complete value',
     args => {
         meta => {
-            summary => 'Rinci function metadata',
+            summary => 'Rinci function metadata, must be normalized',
             schema => 'hash*',
             req => 1,
         },
@@ -179,9 +172,20 @@ sub complete_arg_val {
     my $words;
     eval { # completion sub can die, etc.
 
-        if ($arg_p->{completion}) {
+        my $comp = $arg_p->{completion};
+        if ($comp) {
             $log->tracef("calling arg spec's completion");
-            $words = $arg_p->{completion}->(
+            if (ref($comp) ne 'CODE') {
+                if ($comp eq 'CODE') {
+                    $log->debugf("arg spec's completion is not a coderef".
+                                     ", probably cleaned? declining");
+                } else {
+                    $log->debugf("arg spec's completion is not a coderef".
+                             ", declining");
+                }
+                return; # from eval
+            }
+            $words = $comp->(
                 word=>$word, ci=>$ci, args=>$args{args}, parent_args=>\%args);
             die "Completion sub does not return array"
                 unless ref($words) eq 'ARRAY';
@@ -241,8 +245,21 @@ sub complete_arg_elem {
     my $words;
     eval { # completion sub can die, etc.
 
-        if ($arg_p->{element_completion}) {
+        my $elcomp = $arg_p->{element_completion};
+        if ($elcomp) {
             $log->tracef("calling arg spec's element_completion");
+            if (ref($elcomp) ne 'CODE') {
+                if ($elcomp eq 'CODE') {
+                    $log->debugf(
+                        "arg spec's element_completion is not a coderef".
+                            ", probably cleaned? declining");
+                } else {
+                    $log->debugf(
+                        "arg spec's element_completion is not a coderef".
+                            ", declining");
+                }
+                return; # from eval
+            }
             $words = $arg_p->{element_completion}->(
                 word=>$word, ci=>$ci, index=>$args{index}, args=>$args{args},
                 parent_args=>\%args);
@@ -330,7 +347,7 @@ information in Rinci metadata (using `complete_arg_val()` function).
 _
     args => {
         meta => {
-            summary => 'Rinci function metadata',
+            summary => 'Rinci function metadata, must be normalized',
             schema => 'hash*',
             req => 1,
         },
@@ -748,7 +765,7 @@ Perinci::Sub::Complete - Shell completion routines using Rinci metadata
 
 =head1 VERSION
 
-version 0.36
+This document describes version 0.37 of Perinci::Sub::Complete (from Perl distribution Perinci-Sub-Complete), released on 2014-06-18.
 
 =head1 SYNOPSIS
 
@@ -789,7 +806,7 @@ Index of element to complete.
 
 =item * B<meta>* => I<hash>
 
-Rinci function metadata.
+Rinci function metadata, must be normalized.
 
 =item * B<parent_args> => I<hash>
 
@@ -802,6 +819,7 @@ Word to be completed.
 =back
 
 Return value:
+
 
 =head2 complete_arg_val(%args) -> array
 
@@ -825,7 +843,7 @@ Whether to be case-insensitive.
 
 =item * B<meta>* => I<hash>
 
-Rinci function metadata.
+Rinci function metadata, must be normalized.
 
 =item * B<parent_args> => I<hash>
 
@@ -838,6 +856,7 @@ Word to be completed.
 =back
 
 Return value:
+
 
 =head2 complete_from_schema(%args) -> [status, msg, result, meta]
 
@@ -864,7 +883,15 @@ Must be normalized.
 
 Return value:
 
-Returns an enveloped result (an array). First element (status) is an integer containing HTTP status code (200 means OK, 4xx caller error, 5xx function error). Second element (msg) is a string containing error message, or 'OK' if status is 200. Third element (result) is optional, the actual result. Fourth element (meta) is called result metadata and is optional, a hash that contains extra information.
+Returns an enveloped result (an array).
+
+First element (status) is an integer containing HTTP status code
+(200 means OK, 4xx caller error, 5xx function error). Second element
+(msg) is a string containing error message, or 'OK' if status is
+200. Third element (result) is optional, the actual result. Fourth
+element (meta) is called result metadata and is optional, a hash
+that contains extra information.
+
 
 =head2 shell_complete_arg(%args) -> array
 
@@ -1007,7 +1034,7 @@ Completion routines will get this from their C<parent_args> argument.
 
 =item * B<meta>* => I<hash>
 
-Rinci function metadata.
+Rinci function metadata, must be normalized.
 
 =item * B<words> => I<array>
 
@@ -1060,7 +1087,7 @@ Steven Haryanto <stevenharyanto@gmail.com>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2013 by Steven Haryanto.
+This software is copyright (c) 2014 by Steven Haryanto.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.

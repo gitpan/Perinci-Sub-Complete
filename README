@@ -2,7 +2,8 @@ NAME
     Perinci::Sub::Complete - Shell completion routines using Rinci metadata
 
 VERSION
-    version 0.36
+    This document describes version 0.37 of Perinci::Sub::Complete (from
+    Perl distribution Perinci-Sub-Complete), released on 2014-06-18.
 
 SYNOPSIS
      # require'd by Perinci::CmdLine when shell completion is enabled
@@ -36,7 +37,7 @@ FUNCTIONS
 
     *   meta* => *hash*
 
-        Rinci function metadata.
+        Rinci function metadata, must be normalized.
 
     *   parent_args => *hash*
 
@@ -67,7 +68,7 @@ FUNCTIONS
 
     *   meta* => *hash*
 
-        Rinci function metadata.
+        Rinci function metadata, must be normalized.
 
     *   parent_args => *hash*
 
@@ -99,12 +100,14 @@ FUNCTIONS
 
     Return value:
 
-    Returns an enveloped result (an array). First element (status) is an
-    integer containing HTTP status code (200 means OK, 4xx caller error, 5xx
-    function error). Second element (msg) is a string containing error
-    message, or 'OK' if status is 200. Third element (result) is optional,
-    the actual result. Fourth element (meta) is called result metadata and
-    is optional, a hash that contains extra information.
+    Returns an enveloped result (an array).
+
+    First element (status) is an integer containing HTTP status code (200
+    means OK, 4xx caller error, 5xx function error). Second element (msg) is
+    a string containing error message, or 'OK' if status is 200. Third
+    element (result) is optional, the actual result. Fourth element (meta)
+    is called result metadata and is optional, a hash that contains extra
+    information.
 
   shell_complete_arg(%args) -> array
     Complete command-line argument using Rinci function metadata.
@@ -234,7 +237,7 @@ FUNCTIONS
 
     *   meta* => *hash*
 
-        Rinci function metadata.
+        Rinci function metadata, must be normalized.
 
     *   words => *array*
 
@@ -278,7 +281,7 @@ AUTHOR
     Steven Haryanto <stevenharyanto@gmail.com>
 
 COPYRIGHT AND LICENSE
-    This software is copyright (c) 2013 by Steven Haryanto.
+    This software is copyright (c) 2014 by Steven Haryanto.
 
     This is free software; you can redistribute it and/or modify it under
     the same terms as the Perl 5 programming language system itself.
