@@ -2,7 +2,7 @@ NAME
     Perinci::Sub::Complete - Shell completion routines using Rinci metadata
 
 VERSION
-    This document describes version 0.38 of Perinci::Sub::Complete (from
+    This document describes version 0.39 of Perinci::Sub::Complete (from
     Perl distribution Perinci-Sub-Complete), released on 2014-06-18.
 
 SYNOPSIS
@@ -52,10 +52,16 @@ FUNCTIONS
         into a string). Moreover, the completion code needs to run on the
         server.
 
-        If supplied this argument and the "riap_uri" argument, the function
-        will try to request to the server (via Riap request
-        "complete_arg_val"). Otherwise, the function will just give
+        If supplied this argument, "riap_server_url", and the "riap_uri"
+        arguments, the function will try to request to the server (via Riap
+        request "complete_arg_val"). Otherwise, the function will just give
         up/decline completing.
+
+    *   riap_server_url => *str*
+
+        Optional, to perform complete_arg_val to the server.
+
+        See the "riap_client" argument.
 
     *   riap_uri => *str*
 
@@ -105,10 +111,16 @@ FUNCTIONS
         into a string). Moreover, the completion code needs to run on the
         server.
 
-        If supplied this argument and the "riap_uri" argument, the function
-        will try to request to the server (via Riap request
-        "complete_arg_val"). Otherwise, the function will just give
+        If supplied this argument, "riap_server_url", and the "riap_uri"
+        arguments, the function will try to request to the server (via Riap
+        request "complete_arg_val"). Otherwise, the function will just give
         up/decline completing.
+
+    *   riap_server_url => *str*
+
+        Optional, to perform complete_arg_val to the server.
+
+        See the "riap_client" argument.
 
     *   riap_uri => *str*
 
@@ -292,10 +304,16 @@ FUNCTIONS
         into a string). Moreover, the completion code needs to run on the
         server.
 
-        If supplied this argument and the "riap_uri" argument, the function
-        will try to request to the server (via Riap request
-        "complete_arg_val"). Otherwise, the function will just give
+        If supplied this argument, "riap_server_url", and the "riap_uri"
+        arguments, the function will try to request to the server (via Riap
+        request "complete_arg_val"). Otherwise, the function will just give
         up/decline completing.
+
+    *   riap_server_url => *str*
+
+        Optional, to perform complete_arg_val to the server.
+
+        See the "riap_client" argument.
 
     *   riap_uri => *str*
 
