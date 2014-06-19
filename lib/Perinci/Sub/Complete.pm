@@ -15,7 +15,7 @@ use SHARYANTO::Complete::Util qw(
                                     parse_shell_cmdline
                             );
 
-our $VERSION = '0.39'; # VERSION
+our $VERSION = '0.40'; # VERSION
 
 require Exporter;
 our @ISA       = qw(Exporter);
@@ -39,10 +39,9 @@ from a remote server, sometimes the `completion` key no longer contains the code
 (it has been cleansed into a string). Moreover, the completion code needs to run
 on the server.
 
-If supplied this argument, `riap_server_url`, and the `riap_uri` arguments, the
-function will try to request to the server (via Riap request
-`complete_arg_val`). Otherwise, the function will just give up/decline
-completing.
+If supplied this argument and te `riap_server_url` argument, the function will
+try to request to the server (via Riap request `complete_arg_val`). Otherwise,
+the function will just give up/decline completing.
 
 _
         },
@@ -226,12 +225,12 @@ sub complete_arg_val {
             }
 
             $log->tracef("arg spec's completion is not a coderef");
-            if ($args{riap_client} && $args{riap_server_url}
-                    && $args{riap_uri}) {
+            if ($args{riap_client} && $args{riap_server_url}) {
                 $log->tracef("trying to do complete_arg_val from the server");
                 my $res = $args{riap_client}->request(
                     complete_arg_val => $args{riap_server_url},
-                    {uri=>$args{riap_uri}, arg=>$arg, word=>$word, ci=>$ci},
+                    {(uri=>$args{riap_uri}) x !!defined($args{riap_uri}),
+                     arg=>$arg, word=>$word, ci=>$ci},
                 );
                 if ($res->[0] != 200) {
                     $log->tracef("request failed (%s), declining", $res);
@@ -315,12 +314,12 @@ sub complete_arg_elem {
             }
 
             $log->tracef("arg spec's element_completion is not a coderef");
-            if ($args{riap_client} && $args{riap_server_url} &&
-                    $args{riap_uri}) {
+            if ($args{riap_client} && $args{riap_server_url}) {
                 $log->tracef("trying to do complete_arg_elem from the server");
                 my $res = $args{riap_client}->request(
                     complete_arg_elem => $args{riap_server_url},
-                    {uri=>$args{riap_uri}, arg=>$arg, word=>$word, ci=>$ci,
+                    {(uri=>$args{riap_uri}) x !!defined($args{riap_uri}),
+                     arg=>$arg, word=>$word, ci=>$ci,
                      index=>$index},
                 );
                 if ($res->[0] != 200) {
@@ -839,7 +838,7 @@ Perinci::Sub::Complete - Shell completion routines using Rinci metadata
 
 =head1 VERSION
 
-This document describes version 0.39 of Perinci::Sub::Complete (from Perl distribution Perinci-Sub-Complete), released on 2014-06-18.
+This document describes version 0.40 of Perinci::Sub::Complete (from Perl distribution Perinci-Sub-Complete), released on 2014-06-19.
 
 =head1 SYNOPSIS
 
@@ -894,10 +893,9 @@ from a remote server, sometimes the C<completion> key no longer contains the cod
 (it has been cleansed into a string). Moreover, the completion code needs to run
 on the server.
 
-If supplied this argument, C<riap_server_url>, and the C<riap_uri> arguments, the
-function will try to request to the server (via Riap request
-C<complete_arg_val>). Otherwise, the function will just give up/decline
-completing.
+If supplied this argument and te C<riap_server_url> argument, the function will
+try to request to the server (via Riap request C<complete_arg_val>). Otherwise,
+the function will just give up/decline completing.
 
 =item * B<riap_server_url> => I<str>
 
@@ -958,10 +956,9 @@ from a remote server, sometimes the C<completion> key no longer contains the cod
 (it has been cleansed into a string). Moreover, the completion code needs to run
 on the server.
 
-If supplied this argument, C<riap_server_url>, and the C<riap_uri> arguments, the
-function will try to request to the server (via Riap request
-C<complete_arg_val>). Otherwise, the function will just give up/decline
-completing.
+If supplied this argument and te C<riap_server_url> argument, the function will
+try to request to the server (via Riap request C<complete_arg_val>). Otherwise,
+the function will just give up/decline completing.
 
 =item * B<riap_server_url> => I<str>
 
@@ -1172,10 +1169,9 @@ from a remote server, sometimes the C<completion> key no longer contains the cod
 (it has been cleansed into a string). Moreover, the completion code needs to run
 on the server.
 
-If supplied this argument, C<riap_server_url>, and the C<riap_uri> arguments, the
-function will try to request to the server (via Riap request
-C<complete_arg_val>). Otherwise, the function will just give up/decline
-completing.
+If supplied this argument and te C<riap_server_url> argument, the function will
+try to request to the server (via Riap request C<complete_arg_val>). Otherwise,
+the function will just give up/decline completing.
 
 =item * B<riap_server_url> => I<str>
 
