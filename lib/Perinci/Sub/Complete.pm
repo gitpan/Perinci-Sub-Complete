@@ -15,7 +15,7 @@ use SHARYANTO::Complete::Util qw(
                                     parse_shell_cmdline
                             );
 
-our $VERSION = '0.42'; # VERSION
+our $VERSION = '0.43'; # VERSION
 
 require Exporter;
 our @ISA       = qw(Exporter);
@@ -147,20 +147,56 @@ sub complete_from_schema {
             } else {
                 # do a digit by digit completion
                 $words = [];
-                for ("", 0..9) {
-                    my $i = $word . $_;
-                    next unless length $i;
-                    next if $i eq '-';
-                    next if $i =~ /\A-?0\d/;
-                    next if $cs->{between} &&
-                        ($i <  $cs->{between}[0]  || $i >  $cs->{between}[1]);
-                    next if $cs->{xbetween} &&
-                        ($i <= $cs->{xbetween}[0] || $i >= $cs->{xbetween}[1]);
-                    next if $cs->{min}  && $i <  $cs->{min};
-                    next if $cs->{xmin} && $i <= $cs->{xmin};
-                    next if $cs->{max}  && $i >  $cs->{max};
-                    next if $cs->{xmin} && $i >= $cs->{xmax};
-                    push @$words, $i;
+                for my $sign ("", "-") {
+                    for ("", 0..9) {
+                        my $i = $sign . $word . $_;
+                        next unless length $i;
+                        next unless $i =~ /\A-?\d+\z/;
+                        next if $i eq '-0';
+                        next if $i =~ /\A-?0\d/;
+                        next if $cs->{between} &&
+                            ($i < $cs->{between}[0] ||
+                                 $i > $cs->{between}[1]);
+                        next if $cs->{xbetween} &&
+                            ($i <= $cs->{xbetween}[0] ||
+                                 $i >= $cs->{xbetween}[1]);
+                        next if defined($cs->{min} ) && $i <  $cs->{min};
+                        next if defined($cs->{xmin}) && $i <= $cs->{xmin};
+                        next if defined($cs->{max} ) && $i >  $cs->{max};
+                        next if defined($cs->{xmin}) && $i >= $cs->{xmax};
+                        push @$words, $i;
+                    }
+                }
+                $words = [sort @$words];
+            }
+            return; # from eval
+        }
+        if ($type =~ /\Afloat\*?\z/) {
+            if (length($word) && $word !~ /\A-?\d*(\.\d*)?\z/) {
+                $log->tracef("word not a float");
+                $words = [];
+            } else {
+                $words = [];
+                for my $sig ("", "-") {
+                    for ("", 0..9,
+                         ".0",".1",".2",".3",".4",".5",".6",".7",".8",".9") {
+                        my $f = $sig . $word . $_;
+                        next unless length $f;
+                        next unless $f =~ /\A-?\d+(\.\d+)?\z/;
+                        next if $f eq '-0';
+                        next if $f =~ /\A-?0\d\z/;
+                        next if $cs->{between} &&
+                            ($f < $cs->{between}[0] ||
+                                 $f > $cs->{between}[1]);
+                        next if $cs->{xbetween} &&
+                            ($f <= $cs->{xbetween}[0] ||
+                                 $f >= $cs->{xbetween}[1]);
+                        next if defined($cs->{min} ) && $f <  $cs->{min};
+                        next if defined($cs->{xmin}) && $f <= $cs->{xmin};
+                        next if defined($cs->{max} ) && $f >  $cs->{max};
+                        next if defined($cs->{xmin}) && $f >= $cs->{xmax};
+                        push @$words, $f;
+                    }
                 }
             }
             return; # from eval
@@ -901,7 +937,7 @@ Perinci::Sub::Complete - Shell completion routines using Rinci metadata
 
 =head1 VERSION
 
-This document describes version 0.42 of Perinci::Sub::Complete (from Perl distribution Perinci-Sub-Complete), released on 2014-06-19.
+This document describes version 0.43 of Perinci::Sub::Complete (from Perl distribution Perinci-Sub-Complete), released on 2014-06-19.
 
 =head1 SYNOPSIS
 

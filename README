@@ -2,7 +2,7 @@ NAME
     Perinci::Sub::Complete - Shell completion routines using Rinci metadata
 
 VERSION
-    This document describes version 0.42 of Perinci::Sub::Complete (from
+    This document describes version 0.43 of Perinci::Sub::Complete (from
     Perl distribution Perinci-Sub-Complete), released on 2014-06-19.
 
 SYNOPSIS
