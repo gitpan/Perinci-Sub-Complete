@@ -7,11 +7,12 @@ use warnings;
 
 use File::Which qw(which);
 use Perinci::Sub::Complete qw(shell_complete_arg);
+use Perinci::Sub::Normalize qw(normalize_function_metadata);
 use Test::More 0.98;
 
 plan skip_all => "bash is not available on this system" unless which("bash");
 
-my $meta = _normalize_meta({
+my $meta = normalize_function_metadata({
     v => 1.1,
     args => {
         bool1 => {
@@ -199,7 +200,7 @@ test_complete(
     result      => [qw(a b c)],
 );
 
-my $meta2 = _normalize_meta({
+my $meta2 = normalize_function_metadata({
     v => 1.1,
     args => {
         str1  => {
@@ -226,47 +227,77 @@ test_complete(
     result      => [qw(a b c d)],
 );
 test_complete(
-    name        => 'complete arg value, arg_pos (1b)',
+    name        => 'complete arg value, pos (1b)',
     args        => {meta=>$meta2},
     comp_line   => 'CMD a',
     comp_point0 => '     ^',
     result      => [qw(a)],
 );
 test_complete(
-    name        => 'complete arg value, arg_pos (2)',
+    name        => 'complete arg value, pos (2)',
     args        => {meta=>$meta2},
     comp_line   => 'CMD a ',
     comp_point0 => '      ^',
     result      => [qw(e f g h)],
 );
 test_complete(
-    name        => 'complete arg value, arg_pos (2b)',
+    name        => 'complete arg value, pos (2b)',
     args        => {meta=>$meta2},
     comp_line   => 'CMD a f',
     comp_point0 => '       ^',
     result      => [qw(f)],
 );
 test_complete(
-    name        => 'complete arg value, arg_pos (3)',
+    name        => 'complete arg value, pos (3)',
     args        => {meta=>$meta2},
     comp_line   => 'CMD a e ',
     comp_point0 => '        ^',
     result      => [qw(i j k l)],
 );
 test_complete(
-    name        => 'complete arg value, arg_pos (3b)',
+    name        => 'complete arg value, pos (3b)',
     args        => {meta=>$meta2},
     comp_line   => 'CMD a e j',
     comp_point0 => '         ^',
     result      => [qw(j)],
 );
 test_complete(
-    name        => 'complete arg value, arg_pos mixed with --opt',
+    name        => 'complete arg value (pos) becomes complete arg name because word starts with -',
     args        => {meta=>$meta2},
     comp_line   => 'CMD a e -',
     comp_point0 => '         ^',
     result      => [qw(--help --str3 -? -h)],
 );
+{
+    my $meta = {
+        v => 1.1,
+        args => {
+            str => { schema => ['str', {in=>[qw/a -a -b/]}], pos=>0 },
+        },
+    };
+    test_complete(
+        name        => 'complete arg value does not become complete arg name despite word starts with -, because opt expects value',
+        args        => {meta=>$meta},
+        comp_line   => 'CMD --str -',
+        comp_point0 => '           ^',
+        result      => [qw(-a -b)],
+    );
+}
+{
+    my $meta = {
+        v => 1.1,
+        args => {
+            bool => { schema => ['bool', {}], pos=>0 },
+        },
+    };
+    test_complete(
+        name        => 'complete arg value becomes complete arg name because word starts with - (opt does not expect value)',
+        args        => {meta=>$meta},
+        comp_line   => 'CMD --bool -',
+        comp_point0 => '            ^',
+        result      => [qw(--bool --help --nobool -? -h)],
+    );
+}
 
 test_complete(
     name        => 'custom_completer (decline)',
@@ -286,7 +317,7 @@ test_complete(
 );
 
 
-my $meta3 = _normalize_meta({
+my $meta3 = normalize_function_metadata({
     v => 1.1,
     args => {
         b  => {schema => "bool",
@@ -309,7 +340,7 @@ test_complete(
                        -? -S -X -b -h -s)],
 );
 
-my $meta4 = _normalize_meta({
+my $meta4 = normalize_function_metadata({
     v => 1.1,
     args => {
         foo_bar   => {schema => "str"},
@@ -325,7 +356,7 @@ test_complete(
     result      => [qw(--foo-bar --foo-baz)],
 );
 
-my $meta5 = _normalize_meta({
+my $meta5 = normalize_function_metadata({
     v => 1.1,
     args => {},
     features => {dry_run=>1},
@@ -340,7 +371,7 @@ test_complete(
 );
 
 subtest "complete element value (schema)" => sub {
-    my $meta = _normalize_meta({
+    my $meta = normalize_function_metadata({
         v => 1.1,
         args => {
             arg => {
@@ -396,7 +427,7 @@ subtest "complete element value (schema)" => sub {
 };
 
 subtest "complete element value (arg spec's element_completion)" => sub {
-    my $meta = _normalize_meta({
+    my $meta = normalize_function_metadata({
         v => 1.1,
         args => {
             arg => {
@@ -447,7 +478,7 @@ subtest "complete element value (arg spec's element_completion)" => sub {
 };
 
 subtest "complete element value (custom_arg_element_completer HoC)" => sub {
-    my $meta = _normalize_meta({
+    my $meta = normalize_function_metadata({
         v => 1.1,
         args => {
             arg => {
@@ -501,7 +532,7 @@ subtest "complete element value (custom_arg_element_completer HoC)" => sub {
 };
 
 subtest "complete element value (custom_arg_element_completer Code)" => sub {
-    my $meta = _normalize_meta({
+    my $meta = normalize_function_metadata({
         v => 1.1,
         args => {
             arg => {
@@ -557,15 +588,6 @@ subtest "complete element value (custom_arg_element_completer Code)" => sub {
 
 DONE_TESTING:
 done_testing();
-
-sub _normalize_meta {
-    my $meta = shift;
-    require Perinci::Sub::Wrapper;
-    my $res = Perinci::Sub::Wrapper::wrap_sub(
-        sub=>sub{}, meta=>$meta, compile=>0);
-    die "Can't wrap: $res->[0] - $res->[1]" unless $res->[0] == 200;
-    $res->[2]{meta};
-}
 
 sub test_complete {
     my (%args) = @_;

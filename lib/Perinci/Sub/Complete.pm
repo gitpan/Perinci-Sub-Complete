@@ -15,7 +15,7 @@ use SHARYANTO::Complete::Util qw(
                                     parse_shell_cmdline
                             );
 
-our $VERSION = '0.41'; # VERSION
+our $VERSION = '0.42'; # VERSION
 
 require Exporter;
 our @ISA       = qw(Exporter);
@@ -113,6 +113,7 @@ sub complete_from_schema {
         if ($type =~ /\Abool\*?\z/) {
             $log->tracef("adding completion from possible values of bool");
             push @$words, 0, 1;
+            return; # from eval
         }
         if ($type =~ /\Aint\*?\z/) {
             my $limit = 100;
@@ -139,8 +140,30 @@ sub complete_from_schema {
             } elsif (defined($cs->{xmin}) && defined($cs->{xmax}) &&
                          $cs->{xmax}-$cs->{xmin} <= $limit) {
                 $log->tracef("adding completion from 'xmin' & 'xmax' clauses");
-                push @$words, $cs->{min}+1 .. $cs->{max}-1;
+                push @$words, $cs->{xmin}+1 .. $cs->{xmax}-1;
+            } elsif (length($word) && $word !~ /\A-?\d*\z/) {
+                $log->tracef("word not an int");
+                $words = [];
+            } else {
+                # do a digit by digit completion
+                $words = [];
+                for ("", 0..9) {
+                    my $i = $word . $_;
+                    next unless length $i;
+                    next if $i eq '-';
+                    next if $i =~ /\A-?0\d/;
+                    next if $cs->{between} &&
+                        ($i <  $cs->{between}[0]  || $i >  $cs->{between}[1]);
+                    next if $cs->{xbetween} &&
+                        ($i <= $cs->{xbetween}[0] || $i >= $cs->{xbetween}[1]);
+                    next if $cs->{min}  && $i <  $cs->{min};
+                    next if $cs->{xmin} && $i <= $cs->{xmin};
+                    next if $cs->{max}  && $i >  $cs->{max};
+                    next if $cs->{xmin} && $i >= $cs->{xmax};
+                    push @$words, $i;
+                }
             }
+            return; # from eval
         }
     }; # eval
 
@@ -353,7 +376,8 @@ sub complete_arg_elem {
             return; # from eval
         }
 
-        # normalize subschema since periwrap does not currently do it
+        # normalize subschema because Data::Sah's normalize_schema (as of 0.28)
+        # currently does not do it yet
         my $elsch = Data::Sah::normalize_schema($cs->{of});
 
         $log->tracef("completing using element schema");
@@ -649,7 +673,35 @@ sub shell_complete_arg {
     pop @$remaining_words
         while (@$remaining_words && !defined($remaining_words->[-1]));
 
-    if ($which ne 'name' && $word =~ /^-/) {
+    my $opt_before_val;
+    my $opt_before_val_expects_val;
+    if (($which eq 'value' || $which eq 'element value') && $cword > 0) {
+        {
+            last unless $words->[$cword-1] =~ /\A--?([\w-]+)\z/;
+            my $opt = $1; $opt =~ s/-/_/g;
+            # find the corresponding function arg
+            my $an;
+            my $arg_p;
+            for (keys %$args_p) {
+                $arg_p = $args_p->{$_};
+                if ($opt eq $_) {
+                    $an = $_;
+                    last;
+                }
+                if ($arg_p->{cmdline_aliases}{$opt}) {
+                    $an = $_;
+                    last;
+                }
+            }
+            last unless $an;
+            $opt_before_val = $an;
+            last unless $arg_p->{schema};
+            $opt_before_val_expects_val = $arg_p->{schema}[0] ne 'bool';
+        } # block
+    }
+
+    #$log->errorf("remaining_words=%s, args=%s, opt_before_val=%s, opt_before_val_expects_val=%s", $remaining_words, $args, $opt_before_val, $opt_before_val_expects_val);
+    if ($which ne 'name' && $word =~ /^-/ && !$opt_before_val_expects_val) {
         # user indicates he wants to complete arg name
         $which = 'name';
         delete $args->{$arg} if !defined($args->{$arg});
@@ -849,7 +901,7 @@ Perinci::Sub::Complete - Shell completion routines using Rinci metadata
 
 =head1 VERSION
 
-This document describes version 0.41 of Perinci::Sub::Complete (from Perl distribution Perinci-Sub-Complete), released on 2014-06-19.
+This document describes version 0.42 of Perinci::Sub::Complete (from Perl distribution Perinci-Sub-Complete), released on 2014-06-19.
 
 =head1 SYNOPSIS
 
@@ -1209,6 +1261,10 @@ Return value:
 =for Pod::Coverage ^(.+)$
 
 =head1 BUGS/LIMITATIONS/TODOS
+
+=head2 Completing C<--foo=X> not yet supported
+
+=head2 Unclosed quoted
 
 Due to parsing limitation (invokes subshell), can't complete unclosed quotes,
 e.g.
