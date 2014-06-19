@@ -15,7 +15,7 @@ use SHARYANTO::Complete::Util qw(
                                     parse_shell_cmdline
                             );
 
-our $VERSION = '0.40'; # VERSION
+our $VERSION = '0.41'; # VERSION
 
 require Exporter;
 our @ISA       = qw(Exporter);
@@ -540,6 +540,7 @@ _
     },
 };
 sub shell_complete_arg {
+    require List::MoreUtils;
     require Perinci::Sub::GetArgs::Argv;
     require UUID::Random;
 
@@ -591,30 +592,40 @@ sub shell_complete_arg {
   ARG:
     for my $an (keys %$args) {
         if (defined($args->{$an})) {
-        if ($args_p->{$an} && $args_p->{$an}{greedy}) {
-            $which = 'element value';
-            $arg = $an;
-            if (ref($args->{$an}) eq 'ARRAY') {
-                for my $i (0..@{ $args->{$an} }-1) {
-                    if ($args->{$an}[$i] eq $uuid) {
-                        $index = $i;
-                        $args->{$an}[$i] = undef;
-                        last ARG;
+            if ($args_p->{$an} && $args_p->{$an}{greedy}) {
+                $which = 'element value';
+                $arg = $an;
+                if (ref($args->{$an}) eq 'ARRAY') {
+                    for my $i (0..@{ $args->{$an} }-1) {
+                        if ($args->{$an}[$i] eq $uuid) {
+                            $index = $i;
+                            $args->{$an}[$i] = undef;
+                            last ARG;
+                        }
+                    }
+                } else {
+                    # this is not perfect as whitespaces have been mashed
+                    # together
+                    my @els = split /\s+/, $args->{$an};
+                    for my $i (0..$#els) {
+                        if ($els[$i] eq $uuid) {
+                            $index = $i;
+                            $els[$i] = '';
+                            $args->{$an} = join " ", @els;
+                            last ARG;
+                        }
                     }
                 }
-            } else {
-                # this is not perfect as whitespaces have been mashed together
-                my @els = split /\s+/, $args->{$an};
-                for my $i (0..$#els) {
-                    if ($els[$i] eq $uuid) {
-                        $index = $i;
-                        $els[$i] = '';
-                        $args->{$an} = join " ", @els;
-                        last ARG;
-                    }
-                }
-            }
-        } elsif ($args->{$an} eq $uuid) {
+            } elsif (ref($args->{$an}) eq 'ARRAY' &&
+                         (my $i = List::MoreUtils::firstidx(sub {$_ eq $uuid},
+                              @{ $args->{$an} }) // -1) >= 0
+                     ) {
+                $arg = $an;
+                $which = 'element value';
+                $index = $i;
+                $args->{$an}[$i] = undef;
+                last;
+            } elsif ($args->{$an} eq $uuid) {
                 $arg = $an;
                 $which = 'value';
                 $args->{$an} = undef;
@@ -838,7 +849,7 @@ Perinci::Sub::Complete - Shell completion routines using Rinci metadata
 
 =head1 VERSION
 
-This document describes version 0.40 of Perinci::Sub::Complete (from Perl distribution Perinci-Sub-Complete), released on 2014-06-19.
+This document describes version 0.41 of Perinci::Sub::Complete (from Perl distribution Perinci-Sub-Complete), released on 2014-06-19.
 
 =head1 SYNOPSIS
 
