@@ -15,7 +15,7 @@ use Complete::Util qw(
                                     parse_shell_cmdline
                             );
 
-our $VERSION = '0.44'; # VERSION
+our $VERSION = '0.45'; # VERSION
 
 require Exporter;
 our @ISA       = qw(Exporter);
@@ -783,9 +783,7 @@ sub shell_complete_arg {
             remaining_words => $remaining_words,
         );
         $log->tracef("custom_completer returns %s", $res);
-        if ($res) {
-            return complete_array(word=>$word, array=>$res);
-        }
+        return $res if $res;
     }
 
     if ($which eq 'value') {
@@ -800,18 +798,14 @@ sub shell_complete_arg {
                         parent_args=>\%args,
                     );
                     $log->tracef("custom_arg_completer returns %s", $res);
-                    if ($res) {
-                        return complete_array(word => $word, array => $res);
-                    }
+                    return $res if $res;
                 }
             } else {
                 $log->tracef("calling 'custom_arg_completer' (arg=%s)", $arg);
                 $res = $cac->(
                     word=>$word, arg=>$arg, args=>$args, parent_args=>\%args);
                 $log->tracef("custom_arg_completer returns %s", $res);
-                if ($res) {
-                    return complete_array(word => $word, array => $res);
-                }
+                return $res if $res;
             }
         }
 
@@ -842,9 +836,7 @@ sub shell_complete_arg {
                         parent_args=>\%args,
                     );
                     $log->tracef("custom_arg_element_completer returns %s", $res);
-                    if ($res) {
-                        return complete_array(word=>$word, array=>$res);
-                    }
+                    return $res if $res;
                 }
             } else {
                 $log->tracef("calling 'custom_arg_element_completer' (arg=%s)", $arg);
@@ -852,9 +844,7 @@ sub shell_complete_arg {
                     word=>$word, arg=>$arg, args=>$args, index=>$index,
                     parent_args=>\%args);
                 $log->tracef("custom_arg_element_completer returns %s", $res);
-                if ($res) {
-                    return complete_array(word=>$word, array=>$res);
-                }
+                return $res if $res;
             }
         }
 
@@ -946,7 +936,7 @@ Perinci::Sub::Complete - Shell completion routines using Rinci metadata
 
 =head1 VERSION
 
-This document describes version 0.44 of Perinci::Sub::Complete (from Perl distribution Perinci-Sub-Complete), released on 2014-06-25.
+This document describes version 0.45 of Perinci::Sub::Complete (from Perl distribution Perinci-Sub-Complete), released on 2014-06-25.
 
 =head1 SYNOPSIS
 
