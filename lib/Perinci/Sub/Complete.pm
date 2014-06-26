@@ -15,7 +15,7 @@ use Complete::Util qw(
                                     parse_shell_cmdline
                             );
 
-our $VERSION = '0.46'; # VERSION
+our $VERSION = '0.47'; # VERSION
 
 require Exporter;
 our @ISA       = qw(Exporter);
@@ -876,7 +876,7 @@ sub shell_complete_arg {
                 $a =~ s/[_.]/-/g;
                 my @w;
                 my $type = $as->{schema}[0];
-                if ($type eq 'bool' && length($a) > 1 &&
+                if (defined($type) && $type eq 'bool' && length($a) > 1 &&
                         !$as->{schema}[1]{is}) {
                     @w = ("--$a", "--no$a");
                 } else {
@@ -929,7 +929,7 @@ Perinci::Sub::Complete - Shell completion routines using Rinci metadata
 
 =head1 VERSION
 
-This document describes version 0.46 of Perinci::Sub::Complete (from Perl distribution Perinci-Sub-Complete), released on 2014-06-25.
+This document describes version 0.47 of Perinci::Sub::Complete (from Perl distribution Perinci-Sub-Complete), released on 2014-06-26.
 
 =head1 SYNOPSIS
 
