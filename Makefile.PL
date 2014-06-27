@@ -21,11 +21,11 @@ my %WriteMakefileArgs = (
   "NAME" => "Perinci::Sub::Complete",
   "PREREQ_PM" => {
     "Complete::Util" => 0,
-    "Data::Clone" => 0,
     "Data::Sah" => "0.18",
     "List::MoreUtils" => 0,
     "Log::Any" => 0,
     "Perinci::Sub::GetArgs::Argv" => "0.13",
+    "Perinci::Sub::Util" => "0.38",
     "Rinci" => "v1.1.42",
     "UUID::Random" => 0,
     "experimental" => 0
@@ -38,7 +38,7 @@ my %WriteMakefileArgs = (
     "Perinci::Sub::Normalize" => 0,
     "Test::More" => "0.98"
   },
-  "VERSION" => "0.47",
+  "VERSION" => "0.48",
   "test" => {
     "TESTS" => "t/*.t"
   }
@@ -47,7 +47,6 @@ my %WriteMakefileArgs = (
 
 my %FallbackPrereqs = (
   "Complete::Util" => 0,
-  "Data::Clone" => 0,
   "Data::Sah" => "0.18",
   "File::Spec" => 0,
   "File::Which" => 0,
@@ -57,6 +56,7 @@ my %FallbackPrereqs = (
   "Log::Any" => 0,
   "Perinci::Sub::GetArgs::Argv" => "0.13",
   "Perinci::Sub::Normalize" => 0,
+  "Perinci::Sub::Util" => "0.38",
   "Rinci" => "v1.1.42",
   "Test::More" => "0.98",
   "UUID::Random" => 0,

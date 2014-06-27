@@ -2,8 +2,8 @@ NAME
     Perinci::Sub::Complete - Shell completion routines using Rinci metadata
 
 VERSION
-    This document describes version 0.47 of Perinci::Sub::Complete (from
-    Perl distribution Perinci-Sub-Complete), released on 2014-06-26.
+    This document describes version 0.48 of Perinci::Sub::Complete (from
+    Perl distribution Perinci-Sub-Complete), released on 2014-06-27.
 
 SYNOPSIS
 DESCRIPTION
@@ -163,7 +163,7 @@ FUNCTIONS
     is called result metadata and is optional, a hash that contains extra
     information.
 
-  shell_complete_arg(%args) -> array
+  shell_complete_arg(%args) -> hash
     Complete command-line argument using Rinci function metadata.
 
     Assuming that command-line like:
@@ -328,6 +328,8 @@ FUNCTIONS
         If unset, will be taken from COMP*LINE and COMP*POINT.
 
     Return value:
+
+    Shell completion result (hash)
 
 BUGS/LIMITATIONS/TODOS
   Completing "--foo=X" not yet supported

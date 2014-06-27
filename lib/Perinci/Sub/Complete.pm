@@ -6,7 +6,6 @@ use warnings;
 use experimental 'smartmatch';
 use Log::Any '$log';
 
-use Data::Clone;
 #use List::MoreUtils qw(firstidx);
 use Complete::Util qw(
                                     complete_array
@@ -14,8 +13,10 @@ use Complete::Util qw(
                                     complete_file
                                     parse_shell_cmdline
                             );
+use Perinci::Sub::Util qw(gen_modified_sub);
 
-our $VERSION = '0.47'; # VERSION
+our $DATE = '2014-06-27'; # DATE
+our $VERSION = '0.48'; # VERSION
 
 require Exporter;
 our @ISA       = qw(Exporter);
@@ -323,13 +324,19 @@ sub complete_arg_val {
     $words;
 }
 
-my $m = clone($SPEC{complete_arg_val});
-$m->{summary} = 'Given argument name and function metadata, complete array element';
-$m->{args}{index} = {
-    summary => 'Index of element to complete',
-    schema  => [int => min => 0],
-};
-$SPEC{complete_arg_elem} = $m;
+gen_modified_sub(
+    output_name  => 'complete_arg_elem',
+    install_sub  => 0,
+    base_name    => 'complete_arg_val',
+    summary      => 'Given argument name and function metadata, '.
+        'complete array element',
+    add_args     => {
+        index => {
+            summary => 'Index of element to complete',
+            schema  => [int => min => 0],
+        },
+    },
+);
 sub complete_arg_elem {
     require Data::Sah;
 
@@ -598,7 +605,16 @@ _
     },
     result_naked => 1,
     result => {
-        schema => 'array*', # XXX of => str*
+        summary => 'Shell completion result',
+        description => <<'_',
+
+A hash. Contains the actual completion result in `completion` key (value is an
+array) with some extra metadata: `type` key. The metadata gives hints to
+formatting routine on how to properly display (escape special characters) when
+outputting to shell.
+
+_
+        schema => 'hash*',
     },
 };
 sub shell_complete_arg {
@@ -624,13 +640,13 @@ sub shell_complete_arg {
 
     if ($word =~ /^\$/) {
         $log->tracef("word begins with \$, completing env vars");
-        return complete_env(word=>$word);
+        return {completion=>complete_env(word=>$word), type=>'env'};
     }
 
     if ((my $v = $meta->{v} // 1.0) != 1.1) {
         $log->debug("Metadata version is not supported ($v), ".
                         "only 1.1 is supported");
-        return [];
+        return {completion=>[]};
     }
     my $args_p = $meta->{args} // {};
 
@@ -648,7 +664,7 @@ sub shell_complete_arg {
         argv=>$remaining_words, meta=>$meta, strict=>0);
     if ($res->[0] != 200) {
         $log->debug("Failed getting args from argv: $res->[0] - $res->[1]");
-        return [];
+        return {completion=>[]};
     }
     my $args = $res->[2];
   ARG:
@@ -776,7 +792,8 @@ sub shell_complete_arg {
             remaining_words => $remaining_words,
         );
         $log->tracef("custom_completer returns %s", $res);
-        return $res if $res;
+        # XXX pass type hint from custom_completer
+        return {completion=>$res} if $res;
     }
 
     if ($which eq 'value') {
@@ -791,14 +808,16 @@ sub shell_complete_arg {
                         parent_args=>\%args,
                     );
                     $log->tracef("custom_arg_completer returns %s", $res);
-                    return $res if $res;
+                    # XXX pass type hint from routine
+                    return {completion=>$res} if $res;
                 }
             } else {
                 $log->tracef("calling 'custom_arg_completer' (arg=%s)", $arg);
                 $res = $cac->(
                     word=>$word, arg=>$arg, args=>$args, parent_args=>\%args);
                 $log->tracef("custom_arg_completer returns %s", $res);
-                return $res if $res;
+                # XXX pass type hint from routine
+                return {completion=>$res} if $res;
             }
         }
 
@@ -811,11 +830,12 @@ sub shell_complete_arg {
             riap_client     => $args{riap_client},
         );
         $log->tracef("complete_arg_val() returns %s", $res);
-        return $res if $res;
+        # XXX pass type hint from routine
+        return {completion=>$res} if $res;
 
         # fallback to file
         $log->tracef("completing arg value from file (fallback)");
-        return complete_file(word=>$word);
+        return {completion=>complete_file(word=>$word), type=>'file'};
 
     } elsif ($which eq 'element value') {
 
@@ -829,7 +849,8 @@ sub shell_complete_arg {
                         parent_args=>\%args,
                     );
                     $log->tracef("custom_arg_element_completer returns %s", $res);
-                    return $res if $res;
+                    # XXX pass type hint from routine
+                    return {completion=>$res} if $res;
                 }
             } else {
                 $log->tracef("calling 'custom_arg_element_completer' (arg=%s)", $arg);
@@ -837,7 +858,8 @@ sub shell_complete_arg {
                     word=>$word, arg=>$arg, args=>$args, index=>$index,
                     parent_args=>\%args);
                 $log->tracef("custom_arg_element_completer returns %s", $res);
-                return $res if $res;
+                # XXX pass type hint from routine
+                return {completion=>$res} if $res;
             }
         }
 
@@ -850,11 +872,12 @@ sub shell_complete_arg {
             riap_client     => $args{riap_client},
         );
         $log->tracef("complete_arg_elem() returns %s", $res);
-        return $res if $res;
+        # XXX pass type hint from routine
+        return {completion=>$res} if $res;
 
         # fallback to file
         $log->tracef("completing arg element value from file (fallback)");
-        return complete_file(word=>$word);
+        return {completion=>complete_file(word=>$word), type=>'file'};
 
     } elsif ($word eq '' || $word =~ /^--?/) {
         # which eq 'name'
@@ -904,12 +927,13 @@ sub shell_complete_arg {
             }
         }
 
-        return complete_array(word=>$word, array=>\@words);
+        return {completion=>complete_array(word=>$word, array=>\@words),
+                type=>'option'};
 
     } else {
 
         # fallback
-        return complete_file(word=>$word);
+        return {completion=>complete_file(word=>$word), type=>'file'};
 
     }
 }
@@ -929,7 +953,7 @@ Perinci::Sub::Complete - Shell completion routines using Rinci metadata
 
 =head1 VERSION
 
-This document describes version 0.47 of Perinci::Sub::Complete (from Perl distribution Perinci-Sub-Complete), released on 2014-06-26.
+This document describes version 0.48 of Perinci::Sub::Complete (from Perl distribution Perinci-Sub-Complete), released on 2014-06-27.
 
 =head1 SYNOPSIS
 
@@ -1107,7 +1131,7 @@ element (meta) is called result metadata and is optional, a hash
 that contains extra information.
 
 
-=head2 shell_complete_arg(%args) -> array
+=head2 shell_complete_arg(%args) -> hash
 
 Complete command-line argument using Rinci function metadata.
 
@@ -1285,6 +1309,8 @@ If unset, will be taken from COMPI<LINE and COMP>POINT.
 =back
 
 Return value:
+
+Shell completion result (hash)
 
 =for Pod::Coverage ^(.+)$
 
