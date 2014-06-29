@@ -2,8 +2,8 @@ NAME
     Perinci::Sub::Complete - Shell completion routines using Rinci metadata
 
 VERSION
-    This document describes version 0.48 of Perinci::Sub::Complete (from
-    Perl distribution Perinci-Sub-Complete), released on 2014-06-27.
+    This document describes version 0.49 of Perinci::Sub::Complete (from
+    Perl distribution Perinci-Sub-Complete), released on 2014-06-29.
 
 SYNOPSIS
 DESCRIPTION
@@ -271,9 +271,10 @@ FUNCTIONS
         function arguments from "words") "remaining_words" (array, slice of
         "words" after "cword"), "meta" (the Rinci function metadata).
 
-        Code should return an arrayref of completion, or "undef" to declare
-        declination, on which case completion will resume using the standard
-        builtin routine.
+        Code should return an arrayref of completion, or a hashref
+        containing completion in "completion" key and other hints in other
+        keys, or "undef" to declare declination, on which case completion
+        will resume using the standard builtin routine.
 
         A use-case of using this option: XXX.
 

@@ -12,7 +12,7 @@ build_requires:
 configure_requires:
   ExtUtils::MakeMaker: '6.30'
 dynamic_config: 0
-generated_by: 'Dist::Zilla version 5.019, CPAN::Meta::Converter version 2.141170'
+generated_by: 'Dist::Zilla version 5.019, CPAN::Meta::Converter version 2.141520'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -25,7 +25,7 @@ requires:
   Log::Any: '0'
   Perinci::Sub::GetArgs::Argv: '0.13'
   Perinci::Sub::Util: '0.38'
-  Rinci: v1.1.42
+  Rinci: v1.1.52
   UUID::Random: '0'
   experimental: '0'
   perl: '5.010001'
@@ -33,7 +33,7 @@ resources:
   bugtracker: https://rt.cpan.org/Public/Dist/Display.html?Name=Perinci-Sub-Complete
   homepage: https://metacpan.org/release/Perinci-Sub-Complete
   repository: git://github.com/sharyanto/perl-Perinci-Sub-Complete.git
-version: '0.48'
+version: '0.49'
 x_Dist_Zilla:
   perl:
     version: '5.018002'
@@ -241,7 +241,7 @@ x_Dist_Zilla:
           script_finder:
             - ':ExecFiles'
       name: '@Author::SHARYANTO/Test::Compile'
-      version: '2.040'
+      version: '2.043'
     -
       class: Dist::Zilla::Plugin::Test::Rinci
       name: '@Author::SHARYANTO/Test::Rinci'
