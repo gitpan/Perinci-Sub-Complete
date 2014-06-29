@@ -16,7 +16,7 @@ use Complete::Util qw(
 use Perinci::Sub::Util qw(gen_modified_sub);
 
 our $DATE = '2014-06-29'; # DATE
-our $VERSION = '0.49'; # VERSION
+our $VERSION = '0.50'; # VERSION
 
 require Exporter;
 our @ISA       = qw(Exporter);
@@ -956,7 +956,7 @@ Perinci::Sub::Complete - Shell completion routines using Rinci metadata
 
 =head1 VERSION
 
-This document describes version 0.49 of Perinci::Sub::Complete (from Perl distribution Perinci-Sub-Complete), released on 2014-06-29.
+This document describes version 0.50 of Perinci::Sub::Complete (from Perl distribution Perinci-Sub-Complete), released on 2014-06-29.
 
 =head1 SYNOPSIS
 
