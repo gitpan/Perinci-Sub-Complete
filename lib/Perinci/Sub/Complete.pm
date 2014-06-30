@@ -15,8 +15,8 @@ use Complete::Util qw(
                             );
 use Perinci::Sub::Util qw(gen_modified_sub);
 
-our $DATE = '2014-06-29'; # DATE
-our $VERSION = '0.50'; # VERSION
+our $DATE = '2014-07-01'; # DATE
+our $VERSION = '0.51'; # VERSION
 
 require Exporter;
 our @ISA       = qw(Exporter);
@@ -901,9 +901,8 @@ sub shell_complete_arg {
             for my $a (@a) {
                 $a =~ s/[_.]/-/g;
                 my @w;
-                my $type = $as->{schema}[0];
-                if (defined($type) && $type eq 'bool' && length($a) > 1 &&
-                        !$as->{schema}[1]{is}) {
+                if ($as->{schema} && $as->{schema}[0] eq 'bool' &&
+                        length($a) > 1 && !$as->{schema}[1]{is}) {
                     @w = ("--$a", "--no$a");
                 } else {
                     @w = length($a) == 1 ? ("-$a") : ("--$a");
@@ -956,7 +955,7 @@ Perinci::Sub::Complete - Shell completion routines using Rinci metadata
 
 =head1 VERSION
 
-This document describes version 0.50 of Perinci::Sub::Complete (from Perl distribution Perinci-Sub-Complete), released on 2014-06-29.
+This document describes version 0.51 of Perinci::Sub::Complete (from Perl distribution Perinci-Sub-Complete), released on 2014-07-01.
 
 =head1 SYNOPSIS
 
@@ -1316,7 +1315,6 @@ If unset, will be taken from COMPI<LINE and COMP>POINT.
 Return value:
 
 Shell completion result (hash)
-
 =for Pod::Coverage ^(.+)$
 
 =head1 BUGS/LIMITATIONS/TODOS
