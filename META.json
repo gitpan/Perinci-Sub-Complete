@@ -65,7 +65,7 @@
          "web" : "https://github.com/sharyanto/perl-Perinci-Sub-Complete"
       }
    },
-   "version" : "0.52",
+   "version" : "0.53",
    "x_Dist_Zilla" : {
       "perl" : {
          "version" : "5.018002"

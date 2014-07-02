@@ -34,7 +34,7 @@ resources:
   bugtracker: https://rt.cpan.org/Public/Dist/Display.html?Name=Perinci-Sub-Complete
   homepage: https://metacpan.org/release/Perinci-Sub-Complete
   repository: git://github.com/sharyanto/perl-Perinci-Sub-Complete.git
-version: '0.52'
+version: '0.53'
 x_Dist_Zilla:
   perl:
     version: '5.018002'

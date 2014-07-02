@@ -2,7 +2,7 @@ NAME
     Perinci::Sub::Complete - Shell completion routines using Rinci metadata
 
 VERSION
-    This document describes version 0.52 of Perinci::Sub::Complete (from
+    This document describes version 0.53 of Perinci::Sub::Complete (from
     Perl distribution Perinci-Sub-Complete), released on 2014-07-02.
 
 SYNOPSIS
@@ -134,36 +134,7 @@ FUNCTIONS
 
     Return value:
 
-  complete_from_schema(%args) -> [status, msg, result, meta]
-    Complete a value from schema.
-
-    Employ some heuristics to complete a value from Sah schema. For example,
-    if schema is "[str =" in => [qw/new open resolved rejected/]]>, then we
-    can complete from the "in" clause. Or for something like "[int ="
-    between => [1, 20]]> we can complete using values from 1 to 20.
-
-    Arguments ('*' denotes required arguments):
-
-    *   ci => *bool*
-
-    *   schema* => *any*
-
-        Must be normalized.
-
-    *   word* => *str* (default: "")
-
-    Return value:
-
-    Returns an enveloped result (an array).
-
-    First element (status) is an integer containing HTTP status code (200
-    means OK, 4xx caller error, 5xx function error). Second element (msg) is
-    a string containing error message, or 'OK' if status is 200. Third
-    element (result) is optional, the actual result. Fourth element (meta)
-    is called result metadata and is optional, a hash that contains extra
-    information.
-
-  shell_complete_arg(%args) -> hash
+  complete_cli_arg(%args) -> hash
     Complete command-line argument using Rinci function metadata.
 
     Assuming that command-line like:
@@ -267,7 +238,7 @@ FUNCTIONS
         should complete argument name or value), "words" (an array, the
         command line split into words), "cword" (int, position of word in
         "words"), "word" (the word to be completed), "parent_args" (hash,
-        arguments given to "shell_complete_arg()"), "args" (hash, parsed
+        arguments given to "complete_cli_arg()"), "args" (hash, parsed
         function arguments from "words") "remaining_words" (array, slice of
         "words" after "cword"), "meta" (the Rinci function metadata).
 
@@ -330,7 +301,34 @@ FUNCTIONS
 
     Return value:
 
-    Shell completion result (hash)
+  complete_from_schema(%args) -> [status, msg, result, meta]
+    Complete a value from schema.
+
+    Employ some heuristics to complete a value from Sah schema. For example,
+    if schema is "[str =" in => [qw/new open resolved rejected/]]>, then we
+    can complete from the "in" clause. Or for something like "[int ="
+    between => [1, 20]]> we can complete using values from 1 to 20.
+
+    Arguments ('*' denotes required arguments):
+
+    *   ci => *bool*
+
+    *   schema* => *any*
+
+        Must be normalized.
+
+    *   word* => *str* (default: "")
+
+    Return value:
+
+    Returns an enveloped result (an array).
+
+    First element (status) is an integer containing HTTP status code (200
+    means OK, 4xx caller error, 5xx function error). Second element (msg) is
+    a string containing error message, or 'OK' if status is 200. Third
+    element (result) is optional, the actual result. Fourth element (meta)
+    is called result metadata and is optional, a hash that contains extra
+    information.
 
 BUGS/LIMITATIONS/TODOS
   Completing "--foo=X" not yet supported
@@ -344,10 +342,9 @@ BUGS/LIMITATIONS/TODOS
     "COMP_WORDS" and "COMP_CWORD" by bash.
 
 SEE ALSO
-    Perinci::CmdLine
+    Complete
 
-    Other shell completion modules on CPAN: Getopt::Complete,
-    Bash::Completion.
+    Perinci::CmdLine
 
 HOMEPAGE
     Please visit the project's homepage at
