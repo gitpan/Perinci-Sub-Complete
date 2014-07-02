@@ -7,16 +7,16 @@ use experimental 'smartmatch';
 use Log::Any '$log';
 
 #use List::MoreUtils qw(firstidx);
+use Complete::Bash qw(parse_cmdline);
 use Complete::Util qw(
-                                    complete_array
-                                    complete_env
-                                    complete_file
-                                    parse_shell_cmdline
-                            );
+                         complete_array_elem
+                         complete_env
+                         complete_file
+                 );
 use Perinci::Sub::Util qw(gen_modified_sub);
 
-our $DATE = '2014-07-01'; # DATE
-our $VERSION = '0.51'; # VERSION
+our $DATE = '2014-07-02'; # DATE
+our $VERSION = '0.52'; # VERSION
 
 require Exporter;
 our @ISA       = qw(Exporter);
@@ -205,7 +205,7 @@ sub complete_from_schema {
     }; # eval
 
     return undef unless $words;
-    complete_array(array=>$words, word=>$word, ci=>$ci);
+    complete_array_elem(array=>$words, word=>$word, ci=>$ci);
 }
 
 $SPEC{complete_arg_val} = {
@@ -631,9 +631,7 @@ sub shell_complete_arg {
     my $words = $args{words};
     my $cword = $args{cword} // 0;
     if (!$words) {
-        my $res = parse_shell_cmdline();
-        $words = $res->{words};
-        $cword = $res->{cword};
+        ($words, $cword) = parse_cmdline();
     }
     my $word = $words->[$cword] // "";
 
@@ -838,7 +836,7 @@ sub shell_complete_arg {
 
         # fallback to file
         $log->tracef("completing arg value from file (fallback)");
-        return {completion=>complete_file(word=>$word), type=>'filename'};
+        return {completion=>complete_file(word=>$word), type=>'filename', is_path=>1};
 
     } elsif ($which eq 'element value') {
 
@@ -880,7 +878,7 @@ sub shell_complete_arg {
 
         # fallback to file
         $log->tracef("completing arg element value from file (fallback)");
-        return {completion=>complete_file(word=>$word), type=>'filename'};
+        return {completion=>complete_file(word=>$word), type=>'filename', is_path=>1};
 
     } elsif ($word eq '' || $word =~ /^--?/) {
         # which eq 'name'
@@ -929,13 +927,13 @@ sub shell_complete_arg {
             }
         }
 
-        return {completion=>complete_array(word=>$word, array=>\@words),
+        return {completion=>complete_array_elem(word=>$word, array=>\@words),
                 type=>'option'};
 
     } else {
 
         # fallback
-        return {completion=>complete_file(word=>$word), type=>'filename'};
+        return {completion=>complete_file(word=>$word), type=>'filename', is_path=>1};
 
     }
 }
@@ -955,7 +953,7 @@ Perinci::Sub::Complete - Shell completion routines using Rinci metadata
 
 =head1 VERSION
 
-This document describes version 0.51 of Perinci::Sub::Complete (from Perl distribution Perinci-Sub-Complete), released on 2014-07-01.
+This document describes version 0.52 of Perinci::Sub::Complete (from Perl distribution Perinci-Sub-Complete), released on 2014-07-02.
 
 =head1 SYNOPSIS
 
@@ -1315,6 +1313,7 @@ If unset, will be taken from COMPI<LINE and COMP>POINT.
 Return value:
 
 Shell completion result (hash)
+
 =for Pod::Coverage ^(.+)$
 
 =head1 BUGS/LIMITATIONS/TODOS

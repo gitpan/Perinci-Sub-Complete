@@ -2,8 +2,8 @@ NAME
     Perinci::Sub::Complete - Shell completion routines using Rinci metadata
 
 VERSION
-    This document describes version 0.51 of Perinci::Sub::Complete (from
-    Perl distribution Perinci-Sub-Complete), released on 2014-07-01.
+    This document describes version 0.52 of Perinci::Sub::Complete (from
+    Perl distribution Perinci-Sub-Complete), released on 2014-07-02.
 
 SYNOPSIS
 DESCRIPTION
@@ -330,7 +330,7 @@ FUNCTIONS
 
     Return value:
 
-    Shell completion result (hash) =for Pod::Coverage ^(.+)$
+    Shell completion result (hash)
 
 BUGS/LIMITATIONS/TODOS
   Completing "--foo=X" not yet supported
