@@ -16,7 +16,7 @@ use Complete::Util qw(
 use Perinci::Sub::Util qw(gen_modified_sub);
 
 our $DATE = '2014-07-18'; # DATE
-our $VERSION = '0.55'; # VERSION
+our $VERSION = '0.56'; # VERSION
 
 require Exporter;
 our @ISA       = qw(Exporter);
@@ -883,7 +883,10 @@ sub complete_cli_arg {
       CO:
         for my $k (keys %$opts_by_common) {
             my $v = $opts_by_common->{$k};
-            for (@$words) { next CO if $_ ~~ @$v }
+            for my $i (0..@$words-1) {
+                my $w = $words->[$i];
+                next CO if $i != $cword && defined($w) && $w ~~ @$v;
+            }
             push @words, @$v;
         }
         my $opts_by_arg = $genres->[3]{'func.opts_by_arg'};
@@ -894,6 +897,7 @@ sub complete_cli_arg {
             push @words, @{ $opts_by_arg->{$arg} };
         }
 
+        $log->tracef("completing from option names %s", \@words);
         return {completion=>complete_array_elem(word=>$word, array=>\@words),
                 type=>'option'};
 
@@ -920,7 +924,7 @@ Perinci::Sub::Complete - Shell completion routines using Rinci metadata
 
 =head1 VERSION
 
-This document describes version 0.55 of Perinci::Sub::Complete (from Perl distribution Perinci-Sub-Complete), released on 2014-07-18.
+This document describes version 0.56 of Perinci::Sub::Complete (from Perl distribution Perinci-Sub-Complete), released on 2014-07-18.
 
 =head1 SYNOPSIS
 
