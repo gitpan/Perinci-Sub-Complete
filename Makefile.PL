@@ -20,12 +20,12 @@ my %WriteMakefileArgs = (
   "LICENSE" => "perl",
   "NAME" => "Perinci::Sub::Complete",
   "PREREQ_PM" => {
-    "Complete::Bash" => 0,
+    "Complete::Bash" => "0.04",
     "Complete::Util" => "0.12",
     "Data::Sah" => "0.18",
     "List::MoreUtils" => 0,
     "Log::Any" => 0,
-    "Perinci::Sub::GetArgs::Argv" => "0.13",
+    "Perinci::Sub::GetArgs::Argv" => "0.37",
     "Perinci::Sub::Util" => "0.38",
     "Rinci" => "v1.1.52",
     "UUID::Random" => 0,
@@ -39,7 +39,7 @@ my %WriteMakefileArgs = (
     "Perinci::Sub::Normalize" => 0,
     "Test::More" => "0.98"
   },
-  "VERSION" => "0.53",
+  "VERSION" => "0.54",
   "test" => {
     "TESTS" => "t/*.t"
   }
@@ -47,7 +47,7 @@ my %WriteMakefileArgs = (
 
 
 my %FallbackPrereqs = (
-  "Complete::Bash" => 0,
+  "Complete::Bash" => "0.04",
   "Complete::Util" => "0.12",
   "Data::Sah" => "0.18",
   "File::Spec" => 0,
@@ -56,7 +56,7 @@ my %FallbackPrereqs = (
   "IPC::Open3" => 0,
   "List::MoreUtils" => 0,
   "Log::Any" => 0,
-  "Perinci::Sub::GetArgs::Argv" => "0.13",
+  "Perinci::Sub::GetArgs::Argv" => "0.37",
   "Perinci::Sub::Normalize" => 0,
   "Perinci::Sub::Util" => "0.38",
   "Rinci" => "v1.1.52",
