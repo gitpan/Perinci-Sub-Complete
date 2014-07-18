@@ -16,7 +16,7 @@ use Complete::Util qw(
 use Perinci::Sub::Util qw(gen_modified_sub);
 
 our $DATE = '2014-07-18'; # DATE
-our $VERSION = '0.54'; # VERSION
+our $VERSION = '0.55'; # VERSION
 
 require Exporter;
 our @ISA       = qw(Exporter);
@@ -587,13 +587,11 @@ _
             summary => 'Common options',
             description => <<'_',
 
-When completing argument name, this list will be added.
+A hash of Getopt::Long option specifications and handlers. Will be passed to
+`get_args_from_argv()`.
 
 _
-            schema => ['array*' => {
-                of=>['any*' => {of=>['str*', ['array*'=>{of=>'str*'}]]}],
-                default=>[['--help', '-?', '-h']],
-            }],
+            schema => ['hash*'],
         },
         extra_completer_args => {
             summary => 'Arguments to pass to custom completion routines',
@@ -626,8 +624,6 @@ sub complete_cli_arg {
     }
     my $word = $words->[$cword] // "";
 
-    my $res;
-
     $log->tracef("words=%s, cword=%d, word=%s", $words, $cword, $word);
 
     if ($word =~ /^\$/) {
@@ -652,13 +648,18 @@ sub complete_cli_arg {
     my $uuid = UUID::Random::generate();
     my $orig_word = $remaining_words->[$cword];
     $remaining_words->[$cword] = $uuid;
-    $res = Perinci::Sub::GetArgs::Argv::get_args_from_argv(
-        argv=>$remaining_words, meta=>$meta, strict=>0);
-    if ($res->[0] != 200) {
-        $log->debug("Failed getting args from argv: $res->[0] - $res->[1]");
+    my $gares = Perinci::Sub::GetArgs::Argv::get_args_from_argv(
+        argv        => $remaining_words,
+        meta        => $meta,
+        common_opts => $args{common_opts},
+        strict      => 0,
+    );
+    if ($gares->[0] != 200) {
+        $log->debug("Failed getting args from argv: $gares->[0] - $gares->[1]");
         return {completion=>[]};
     }
-    my $args = $res->[2];
+    my $genres = $gares->[3]{'func.gen_getopt_long_spec_result'};
+    my $args = $gares->[2];
   ARG:
     for my $an (keys %$args) {
         if (defined($args->{$an})) {
@@ -772,7 +773,7 @@ sub complete_cli_arg {
         # custom_completer can decline by returning undef
         my $newcword = $cword - (@$words - @$remaining_words);
         $newcword = 0 if $newcword < 0;
-        $res = $args{custom_completer}->(
+        my $res = $args{custom_completer}->(
             which => $which,
             words => $words,
             cword => $newcword,
@@ -795,7 +796,7 @@ sub complete_cli_arg {
             if (ref($cac) eq 'HASH') {
                 if ($cac->{$arg}) {
                     $log->tracef("calling 'custom_arg_completer'->{%s}", $arg);
-                    $res = $cac->{$arg}->(
+                    my $res = $cac->{$arg}->(
                         word=>$word, arg=>$arg, args=>$args,
                         parent_args=>\%args,
                     );
@@ -805,7 +806,7 @@ sub complete_cli_arg {
                 }
             } else {
                 $log->tracef("calling 'custom_arg_completer' (arg=%s)", $arg);
-                $res = $cac->(
+                my $res = $cac->(
                     word=>$word, arg=>$arg, args=>$args, parent_args=>\%args);
                 $log->tracef("custom_arg_completer returns %s", $res);
                 # XXX pass type hint from routine
@@ -814,7 +815,7 @@ sub complete_cli_arg {
         }
 
         $log->tracef("completing using complete_arg_val()");
-        $res = complete_arg_val(
+        my $res = complete_arg_val(
             meta=>$meta, arg=>$arg, word=>$word,
             args=>$args, parent_args=>\%args,
             riap_server_url => $args{riap_server_url},
@@ -836,7 +837,7 @@ sub complete_cli_arg {
             if (ref($caec) eq 'HASH') {
                 if ($caec->{$arg}) {
                     $log->tracef("calling 'custom_arg_element_completer'->{%s}", $arg);
-                    $res = $caec->{$arg}->(
+                    my $res = $caec->{$arg}->(
                         word=>$word, arg=>$arg, args=>$args, index=>$index,
                         parent_args=>\%args,
                     );
@@ -846,7 +847,7 @@ sub complete_cli_arg {
                 }
             } else {
                 $log->tracef("calling 'custom_arg_element_completer' (arg=%s)", $arg);
-                $res = $caec->(
+                my $res = $caec->(
                     word=>$word, arg=>$arg, args=>$args, index=>$index,
                     parent_args=>\%args);
                 $log->tracef("custom_arg_element_completer returns %s", $res);
@@ -856,7 +857,7 @@ sub complete_cli_arg {
         }
 
         $log->tracef("completing using complete_arg_elem()");
-        $res = complete_arg_elem(
+        my $res = complete_arg_elem(
             meta=>$meta, arg=>$arg, word=>$word, index=>$index,
             args=>$args, parent_args=>\%args,
             riap_server_url => $args{riap_server_url},
@@ -878,44 +879,19 @@ sub complete_cli_arg {
         # always be mentioned)
 
         my @words;
-      ARG:
-        for my $a0 (keys %$args_p) {
-            my $as = $args_p->{$a0};
-            next if exists($args->{$a0}) && (!$as || !$as->{greedy});
-            my @a;
-            push @a, $a0;
-            if ($as->{cmdline_aliases}) {
-                push @a, $_ for keys %{$as->{cmdline_aliases}};
-            }
-            for my $a (@a) {
-                $a =~ s/[_.]/-/g;
-                my @w;
-                if ($as->{schema} && $as->{schema}[0] eq 'bool' &&
-                        length($a) > 1 && !$as->{schema}[1]{is}) {
-                    @w = ("--$a", "--no$a");
-                } else {
-                    @w = length($a) == 1 ? ("-$a") : ("--$a");
-                }
-                push @words, @w;
-            }
-        }
-
-        my $special_opts = [];
-        my $ff = $meta->{features} // {};
-        if ($ff->{dry_run}) {
-            push @$special_opts, ['--dry-run'];
-        }
-
-        my $common_opts = $args{common_opts} // [['--help', '-h', '-?']];
-
+        my $opts_by_common = $genres->[3]{'func.opts_by_common'};
       CO:
-        for my $co (@$special_opts, @$common_opts) {
-            if (ref($co) eq 'ARRAY') {
-                for (@$co) { next CO if $_ ~~ @$words || $_ ~~ @words }
-                push @words, @$co;
-            } else {
-                push @words, $co unless $co ~~ @$words || $co ~~ @words;
-            }
+        for my $k (keys %$opts_by_common) {
+            my $v = $opts_by_common->{$k};
+            for (@$words) { next CO if $_ ~~ @$v }
+            push @words, @$v;
+        }
+        my $opts_by_arg = $genres->[3]{'func.opts_by_arg'};
+      ARG:
+        for my $arg (keys %$args_p) {
+            my $as = $args_p->{$arg};
+            next if exists($args->{$arg}) && (!$as || !$as->{greedy});
+            push @words, @{ $opts_by_arg->{$arg} };
         }
 
         return {completion=>complete_array_elem(word=>$word, array=>\@words),
@@ -944,7 +920,7 @@ Perinci::Sub::Complete - Shell completion routines using Rinci metadata
 
 =head1 VERSION
 
-This document describes version 0.54 of Perinci::Sub::Complete (from Perl distribution Perinci-Sub-Complete), released on 2014-07-18.
+This document describes version 0.55 of Perinci::Sub::Complete (from Perl distribution Perinci-Sub-Complete), released on 2014-07-18.
 
 =head1 SYNOPSIS
 
@@ -1023,6 +999,8 @@ Word to be completed.
 
 Return value:
 
+ (array)
+
 
 =head2 complete_arg_val(%args) -> array
 
@@ -1085,6 +1063,8 @@ Word to be completed.
 =back
 
 Return value:
+
+ (array)
 
 
 =head2 complete_cli_arg(%args) -> hash
@@ -1153,11 +1133,12 @@ Arguments ('*' denotes required arguments):
 
 =over 4
 
-=item * B<common_opts> => I<array> (default: [["--help", "-?", "-h"]])
+=item * B<common_opts> => I<hash>
 
 Common options.
 
-When completing argument name, this list will be added.
+A hash of Getopt::Long option specifications and handlers. Will be passed to
+C<get_args_from_argv()>.
 
 =item * B<custom_arg_completer> => I<code|hash>
 
@@ -1268,6 +1249,8 @@ If unset, will be taken from COMPI<LINE and COMP>POINT.
 
 Return value:
 
+ (hash)
+
 
 =head2 complete_from_schema(%args) -> [status, msg, result, meta]
 
@@ -1302,6 +1285,8 @@ First element (status) is an integer containing HTTP status code
 200. Third element (result) is optional, the actual result. Fourth
 element (meta) is called result metadata and is optional, a hash
 that contains extra information.
+
+ (any)
 
 =for Pod::Coverage ^(.+)$
 

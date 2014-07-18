@@ -2,7 +2,7 @@ NAME
     Perinci::Sub::Complete - Shell completion routines using Rinci metadata
 
 VERSION
-    This document describes version 0.54 of Perinci::Sub::Complete (from
+    This document describes version 0.55 of Perinci::Sub::Complete (from
     Perl distribution Perinci-Sub-Complete), released on 2014-07-18.
 
 SYNOPSIS
@@ -75,6 +75,8 @@ FUNCTIONS
 
     Return value:
 
+     (array)
+
   complete_arg_val(%args) -> array
     Given argument name and function metadata, complete value.
 
@@ -134,6 +136,8 @@ FUNCTIONS
 
     Return value:
 
+     (array)
+
   complete_cli_arg(%args) -> hash
     Complete command-line argument using Rinci function metadata.
 
@@ -183,11 +187,12 @@ FUNCTIONS
 
     Arguments ('*' denotes required arguments):
 
-    *   common_opts => *array* (default: [["--help", "-?", "-h"]])
+    *   common_opts => *hash*
 
         Common options.
 
-        When completing argument name, this list will be added.
+        A hash of Getopt::Long option specifications and handlers. Will be
+        passed to "get_args_from_argv()".
 
     *   custom_arg_completer => *code|hash*
 
@@ -301,6 +306,8 @@ FUNCTIONS
 
     Return value:
 
+     (hash)
+
   complete_from_schema(%args) -> [status, msg, result, meta]
     Complete a value from schema.
 
@@ -329,6 +336,8 @@ FUNCTIONS
     element (result) is optional, the actual result. Fourth element (meta)
     is called result metadata and is optional, a hash that contains extra
     information.
+
+     (any)
 
 BUGS/LIMITATIONS/TODOS
   Completing "--foo=X" not yet supported
