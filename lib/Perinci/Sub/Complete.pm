@@ -15,8 +15,8 @@ use Complete::Util qw(
                  );
 use Perinci::Sub::Util qw(gen_modified_sub);
 
-our $DATE = '2014-07-18'; # DATE
-our $VERSION = '0.56'; # VERSION
+our $DATE = '2014-07-19'; # DATE
+our $VERSION = '0.57'; # VERSION
 
 require Exporter;
 our @ISA       = qw(Exporter);
@@ -628,7 +628,7 @@ sub complete_cli_arg {
 
     if ($word =~ /^\$/) {
         $log->tracef("word begins with \$, completing env vars");
-        return {completion=>complete_env(word=>$word), type=>'env'};
+        return {completion=>complete_env(word=>$word), escmode=>'shellvar'};
     }
 
     if ((my $v = $meta->{v} // 1.0) != 1.1) {
@@ -828,7 +828,7 @@ sub complete_cli_arg {
 
         # fallback to file
         $log->tracef("completing arg value from file (fallback)");
-        return {completion=>complete_file(word=>$word), type=>'filename', is_path=>1};
+        return {completion=>complete_file(word=>$word), escmode=>'filename', path_sep=>'/'};
 
     } elsif ($which eq 'element value') {
 
@@ -870,7 +870,7 @@ sub complete_cli_arg {
 
         # fallback to file
         $log->tracef("completing arg element value from file (fallback)");
-        return {completion=>complete_file(word=>$word), type=>'filename', is_path=>1};
+        return {completion=>complete_file(word=>$word), escmode=>'filename', path_sep=>'/'};
 
     } elsif ($word eq '' || $word =~ /^--?/) {
         # which eq 'name'
@@ -899,12 +899,12 @@ sub complete_cli_arg {
 
         $log->tracef("completing from option names %s", \@words);
         return {completion=>complete_array_elem(word=>$word, array=>\@words),
-                type=>'option'};
+                escmode=>'option'};
 
     } else {
 
         # fallback
-        return {completion=>complete_file(word=>$word), type=>'filename', is_path=>1};
+        return {completion=>complete_file(word=>$word), escmode=>'filename', path_sep=>'/'};
 
     }
 }
@@ -924,7 +924,7 @@ Perinci::Sub::Complete - Shell completion routines using Rinci metadata
 
 =head1 VERSION
 
-This document describes version 0.56 of Perinci::Sub::Complete (from Perl distribution Perinci-Sub-Complete), released on 2014-07-18.
+This document describes version 0.57 of Perinci::Sub::Complete (from Perl distribution Perinci-Sub-Complete), released on 2014-07-19.
 
 =head1 SYNOPSIS
 
@@ -1003,8 +1003,6 @@ Word to be completed.
 
 Return value:
 
- (array)
-
 
 =head2 complete_arg_val(%args) -> array
 
@@ -1067,8 +1065,6 @@ Word to be completed.
 =back
 
 Return value:
-
- (array)
 
 
 =head2 complete_cli_arg(%args) -> hash
@@ -1253,8 +1249,6 @@ If unset, will be taken from COMPI<LINE and COMP>POINT.
 
 Return value:
 
- (hash)
-
 
 =head2 complete_from_schema(%args) -> [status, msg, result, meta]
 
@@ -1289,8 +1283,6 @@ First element (status) is an integer containing HTTP status code
 200. Third element (result) is optional, the actual result. Fourth
 element (meta) is called result metadata and is optional, a hash
 that contains extra information.
-
- (any)
 
 =for Pod::Coverage ^(.+)$
 
