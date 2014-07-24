@@ -2,8 +2,8 @@ NAME
     Perinci::Sub::Complete - Shell completion routines using Rinci metadata
 
 VERSION
-    This document describes version 0.57 of Perinci::Sub::Complete (from
-    Perl distribution Perinci-Sub-Complete), released on 2014-07-19.
+    This document describes version 0.58 of Perinci::Sub::Complete (from
+    Perl distribution Perinci-Sub-Complete), released on 2014-07-24.
 
 SYNOPSIS
 DESCRIPTION
@@ -75,6 +75,8 @@ FUNCTIONS
 
     Return value:
 
+     (array)
+
   complete_arg_val(%args) -> array
     Given argument name and function metadata, complete value.
 
@@ -134,12 +136,14 @@ FUNCTIONS
 
     Return value:
 
+     (array)
+
   complete_cli_arg(%args) -> hash
     Complete command-line argument using Rinci function metadata.
 
     Assuming that command-line like:
 
-        foo a b c
+     foo a b c
 
     is executing some function, and the command-line arguments will be
     parsed using "Perinci::Sub::GetArgs::Argv", then try to complete
@@ -147,23 +151,18 @@ FUNCTIONS
 
     Algorithm:
 
-    1.  If word begins with "$", we complete from environment variables and
-        are done.
-
-    2.  Call "get_args_from_argv()" to extract hash arguments from the given
-        "words".
-
-    3.  Determine whether we need to complete argument name (e.g.
-        "--arg<tab">) or argument value (e.g. "--arg1 <tab"> or "<tab"> at
-        1st word where there is an argument specified at pos=0) or an
-        element for an array argument (e.g. "a <tab"> where there is an
-        argument with spec pos=0 and greedy=1, which means we are trying to
-        complete the value of the second element (index=1) of that
-        argument).
-
-    4.  Call "custom_completer" if defined. If a list of words is returned,
-        we're done. This can be used for, e.g. nested function call, e.g.:
-
+    1. If word begins with "$", we complete from environment variables and
+    are done.
+    2. Call "get_args_from_argv()" to extract hash arguments from the given
+    "words".
+    3. Determine whether we need to complete argument name (e.g.
+    "--arg<tab>") or argument value (e.g. "--arg1 <tab>" or "<tab>" at 1st
+    word where there is an argument specified at pos=0) or an element for an
+    array argument (e.g. "a <tab>" where there is an argument with spec
+    pos=0 and greedy=1, which means we are trying to complete the value of
+    the second element (index=1) of that argument).
+    4. Call "custom_completer" if defined. If a list of words is returned,
+    we're done. This can be used for, e.g. nested function call, e.g.:
         somecmd --opt-for-cmd ... subcmd --opt-for-subcmd ...
 
     5a. If we are completing argument name, then supply a list of possible
@@ -187,8 +186,22 @@ FUNCTIONS
 
         Common options.
 
-        A hash of Getopt::Long option specifications and handlers. Will be
-        passed to "get_args_from_argv()".
+        A hash where the values are hashes containing these keys: "getopt"
+        (Getopt::Long option specification), "handler" (Getopt::Long
+        handler). Will be passed to "get_args_from_argv()". Example:
+
+         {
+             help =E<gt> {
+                 getopt  =E<gt> 'help|h|?',
+                 handler =E<gt> sub { ... },
+                 summary =E<gt> 'Display help and exit',
+             },
+             version =E<gt> {
+                 getopt  =E<gt> 'version|v',
+                 handler =E<gt> sub { ... },
+                 summary =E<gt> 'Display version and exit',
+             },
+         }
 
     *   custom_arg_completer => *code|hash*
 
@@ -254,7 +267,7 @@ FUNCTIONS
 
         On which word cursor is located (zero-based).
 
-        If unset, will be taken from COMP*LINE and COMP*POINT.
+        If unset, will be taken from COMP_LINE and COMP_POINT.
 
     *   extra_completer_args => *hash*
 
@@ -298,17 +311,19 @@ FUNCTIONS
 
         Command-line, broken as words.
 
-        If unset, will be taken from COMP*LINE and COMP*POINT.
+        If unset, will be taken from COMP_LINE and COMP_POINT.
 
     Return value:
+
+     (hash)
 
   complete_from_schema(%args) -> [status, msg, result, meta]
     Complete a value from schema.
 
     Employ some heuristics to complete a value from Sah schema. For example,
-    if schema is "[str =" in => [qw/new open resolved rejected/]]>, then we
-    can complete from the "in" clause. Or for something like "[int ="
-    between => [1, 20]]> we can complete using values from 1 to 20.
+    if schema is "[str => in => [qw/new open resolved rejected/]]", then we
+    can complete from the "in" clause. Or for something like "[int =>
+    between => [1, 20]]" we can complete using values from 1 to 20.
 
     Arguments ('*' denotes required arguments):
 
@@ -330,6 +345,8 @@ FUNCTIONS
     element (result) is optional, the actual result. Fourth element (meta)
     is called result metadata and is optional, a hash that contains extra
     information.
+
+     (any)
 
 BUGS/LIMITATIONS/TODOS
   Completing "--foo=X" not yet supported

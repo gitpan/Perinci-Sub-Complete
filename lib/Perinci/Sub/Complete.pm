@@ -15,8 +15,8 @@ use Complete::Util qw(
                  );
 use Perinci::Sub::Util qw(gen_modified_sub);
 
-our $DATE = '2014-07-19'; # DATE
-our $VERSION = '0.57'; # VERSION
+our $DATE = '2014-07-24'; # DATE
+our $VERSION = '0.58'; # VERSION
 
 require Exporter;
 our @ISA       = qw(Exporter);
@@ -280,9 +280,13 @@ sub complete_arg_val {
                     word=>$word, ci=>$ci, args=>$args{args},
                     parent_args=>\%args);
                 return; # from eval
+            } elsif (ref($comp) eq 'ARRAY') {
+                $reply = complete_array_elem(
+                    array=>$comp, word=>$word, ci=>$ci);
+                return; # from eval
             }
 
-            $log->tracef("arg spec's completion is not a coderef");
+            $log->tracef("arg spec's completion is not a coderef or arrayref");
             if ($args{riap_client} && $args{riap_server_url}) {
                 $log->tracef("trying to request complete_arg_val to server");
                 my $res = $args{riap_client}->request(
@@ -336,7 +340,7 @@ gen_modified_sub(
     },
 );
 sub complete_arg_elem {
-    require Data::Sah;
+    require Data::Sah::Normalize;
 
     my %args = @_;
 
@@ -374,9 +378,13 @@ sub complete_arg_elem {
                     word=>$word, ci=>$ci, index=>$index,
                     args=>$args{args}, parent_args=>\%args);
                 return; # from eval
+            } elsif (ref($elcomp) eq 'ARRAY') {
+                $reply = complete_array_elem(
+                    array=>$elcomp, word=>$word, ci=>$ci);
             }
 
-            $log->tracef("arg spec's element_completion is not a coderef");
+            $log->tracef("arg spec's element_completion is not a coderef or ".
+                             "arrayref");
             if ($args{riap_client} && $args{riap_server_url}) {
                 $log->tracef("trying to request complete_arg_elem to server");
                 my $res = $args{riap_client}->request(
@@ -416,9 +424,9 @@ sub complete_arg_elem {
             return; # from eval
         }
 
-        # normalize subschema because Data::Sah's normalize_schema (as of 0.28)
-        # currently does not do it yet
-        my $elsch = Data::Sah::normalize_schema($cs->{of});
+        # normalize subschema because normalize_schema (as of 0.01) currently
+        # does not do it yet
+        my $elsch = Data::Sah::Normalize::normalize_schema($cs->{of});
 
         $log->tracef("completing using element schema");
         $reply = complete_from_schema(schema=>$elsch, word=>$word, ci=>$ci);
@@ -587,8 +595,22 @@ _
             summary => 'Common options',
             description => <<'_',
 
-A hash of Getopt::Long option specifications and handlers. Will be passed to
-`get_args_from_argv()`.
+A hash where the values are hashes containing these keys: `getopt` (Getopt::Long
+option specification), `handler` (Getopt::Long handler). Will be passed to
+`get_args_from_argv()`. Example:
+
+    {
+        help => {
+            getopt  => 'help|h|?',
+            handler => sub { ... },
+            summary => 'Display help and exit',
+        },
+        version => {
+            getopt  => 'version|v',
+            handler => sub { ... },
+            summary => 'Display version and exit',
+        },
+    }
 
 _
             schema => ['hash*'],
@@ -924,7 +946,7 @@ Perinci::Sub::Complete - Shell completion routines using Rinci metadata
 
 =head1 VERSION
 
-This document describes version 0.57 of Perinci::Sub::Complete (from Perl distribution Perinci-Sub-Complete), released on 2014-07-19.
+This document describes version 0.58 of Perinci::Sub::Complete (from Perl distribution Perinci-Sub-Complete), released on 2014-07-24.
 
 =head1 SYNOPSIS
 
@@ -1003,6 +1025,8 @@ Word to be completed.
 
 Return value:
 
+ (array)
+
 
 =head2 complete_arg_val(%args) -> array
 
@@ -1066,6 +1090,8 @@ Word to be completed.
 
 Return value:
 
+ (array)
+
 
 =head2 complete_cli_arg(%args) -> hash
 
@@ -1073,7 +1099,7 @@ Complete command-line argument using Rinci function metadata.
 
 Assuming that command-line like:
 
-    foo a b c
+ foo a b c
 
 is executing some function, and the command-line arguments will be parsed using
 C<Perinci::Sub::GetArgs::Argv>, then try to complete command-line arguments using
@@ -1083,36 +1109,20 @@ Algorithm:
 
 =over
 
-=item 1.
+=item 1. If word begins with C<$>, we complete from environment variables and are done.
 
-If word begins with C<$>, we complete from environment variables and are done.
+=item 2. Call C<get_args_from_argv()> to extract hash arguments from the given C<words>.
 
-
-
-=item 2.
-
-Call C<get_args_from_argv()> to extract hash arguments from the given C<words>.
-
-
-
-=item 3.
-
-Determine whether we need to complete argument name (e.g. C<--arg<tab>>) or
-argument value (e.g. C<--arg1 <tab>> or C<<tab>> at 1st word where there is an
-argument specified at pos=0) or an element for an array argument (e.g. C<a <tab>>
+=item 3. Determine whether we need to complete argument name (e.g. C<< --argE<lt>tabE<gt> >>) or
+argument value (e.g. C<< --arg1 E<lt>tabE<gt> >> or C<< E<lt>tabE<gt> >> at 1st word where there is an
+argument specified at pos=0) or an element for an array argument (e.g. C<< a E<lt>tabE<gt> >>
 where there is an argument with spec pos=0 and greedy=1, which means we are
 trying to complete the value of the second element (index=1) of that argument).
 
-
-
-=item 4.
-
-Call C<custom_completer> if defined. If a list of words is returned, we're
+=item 4. Call C<custom_completer> if defined. If a list of words is returned, we're
 done. This can be used for, e.g. nested function call, e.g.:
 
 somecmd --opt-for-cmd ... subcmd --opt-for-subcmd ...
-
-
 
 =back
 
@@ -1137,8 +1147,22 @@ Arguments ('*' denotes required arguments):
 
 Common options.
 
-A hash of Getopt::Long option specifications and handlers. Will be passed to
-C<get_args_from_argv()>.
+A hash where the values are hashes containing these keys: C<getopt> (Getopt::Long
+option specification), C<handler> (Getopt::Long handler). Will be passed to
+C<get_args_from_argv()>. Example:
+
+ {
+     help =E<gt> {
+         getopt  =E<gt> 'help|h|?',
+         handler =E<gt> sub { ... },
+         summary =E<gt> 'Display help and exit',
+     },
+     version =E<gt> {
+         getopt  =E<gt> 'version|v',
+         handler =E<gt> sub { ... },
+         summary =E<gt> 'Display version and exit',
+     },
+ }
 
 =item * B<custom_arg_completer> => I<code|hash>
 
@@ -1201,7 +1225,7 @@ A use-case of using this option: XXX.
 
 On which word cursor is located (zero-based).
 
-If unset, will be taken from COMPI<LINE and COMP>POINT.
+If unset, will be taken from COMP_LINE and COMP_POINT.
 
 =item * B<extra_completer_args> => I<hash>
 
@@ -1243,11 +1267,13 @@ See the C<riap_client> argument.
 
 Command-line, broken as words.
 
-If unset, will be taken from COMPI<LINE and COMP>POINT.
+If unset, will be taken from COMP_LINE and COMP_POINT.
 
 =back
 
 Return value:
+
+ (hash)
 
 
 =head2 complete_from_schema(%args) -> [status, msg, result, meta]
@@ -1255,9 +1281,9 @@ Return value:
 Complete a value from schema.
 
 Employ some heuristics to complete a value from Sah schema. For example, if
-schema is C<[str => in => [qw/new open resolved rejected/]]>, then we can
-complete from the C<in> clause. Or for something like C<[int => between => [1,
-20]]> we can complete using values from 1 to 20.
+schema is C<< [str =E<gt> in =E<gt> [qw/new open resolved rejected/]] >>, then we can
+complete from the C<in> clause. Or for something like C<< [int =E<gt> between =E<gt> [1,
+20]] >> we can complete using values from 1 to 20.
 
 Arguments ('*' denotes required arguments):
 
@@ -1283,6 +1309,8 @@ First element (status) is an integer containing HTTP status code
 200. Third element (result) is optional, the actual result. Fourth
 element (meta) is called result metadata and is optional, a hash
 that contains extra information.
+
+ (any)
 
 =for Pod::Coverage ^(.+)$
 
