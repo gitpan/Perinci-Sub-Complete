@@ -15,8 +15,8 @@ use Complete::Util qw(
                  );
 use Perinci::Sub::Util qw(gen_modified_sub);
 
-our $DATE = '2014-07-24'; # DATE
-our $VERSION = '0.58'; # VERSION
+our $DATE = '2014-07-25'; # DATE
+our $VERSION = '0.59'; # VERSION
 
 require Exporter;
 our @ISA       = qw(Exporter);
@@ -643,8 +643,9 @@ sub complete_cli_arg {
     my $cword = $args{cword} // 0;
     if (!$words) {
         ($words, $cword) = @{ parse_cmdline() };
+        shift @$words; $cword--; # strip command name
     }
-    my $word = $words->[$cword] // "";
+    my $word = $words->[$cword];
 
     $log->tracef("words=%s, cword=%d, word=%s", $words, $cword, $word);
 
@@ -946,7 +947,7 @@ Perinci::Sub::Complete - Shell completion routines using Rinci metadata
 
 =head1 VERSION
 
-This document describes version 0.58 of Perinci::Sub::Complete (from Perl distribution Perinci-Sub-Complete), released on 2014-07-24.
+This document describes version 0.59 of Perinci::Sub::Complete (from Perl distribution Perinci-Sub-Complete), released on 2014-07-25.
 
 =head1 SYNOPSIS
 

@@ -29,7 +29,7 @@
       },
       "runtime" : {
          "requires" : {
-            "Complete::Bash" : "0.06",
+            "Complete::Bash" : "0.09",
             "Complete::Util" : "0.12",
             "Data::Sah::Normalize" : "0",
             "List::MoreUtils" : "0",
@@ -65,7 +65,7 @@
          "web" : "https://github.com/sharyanto/perl-Perinci-Sub-Complete"
       }
    },
-   "version" : "0.58",
+   "version" : "0.59",
    "x_Dist_Zilla" : {
       "perl" : {
          "version" : "5.018002"
