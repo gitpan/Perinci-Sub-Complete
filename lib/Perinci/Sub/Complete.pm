@@ -1,7 +1,7 @@
 package Perinci::Sub::Complete;
 
 our $DATE = '2014-08-06'; # DATE
-our $VERSION = '0.61'; # VERSION
+our $VERSION = '0.62'; # VERSION
 
 use 5.010001;
 use strict;
@@ -578,8 +578,9 @@ sub complete_cli_arg {
     # 'extras'
     {
         my $gares = Perinci::Sub::GetArgs::Argv::get_args_from_argv(
-            argv => [@$words],
-            meta => $meta,
+            argv   => [@$words],
+            meta   => $meta,
+            strict => 0,
         );
         $extras->{args} = $gares->[2] if $gares->[0] == 200;
     }
@@ -743,7 +744,7 @@ Perinci::Sub::Complete - Complete command-line argument using Rinci metadata
 
 =head1 VERSION
 
-This document describes version 0.61 of Perinci::Sub::Complete (from Perl distribution Perinci-Sub-Complete), released on 2014-08-06.
+This document describes version 0.62 of Perinci::Sub::Complete (from Perl distribution Perinci-Sub-Complete), released on 2014-08-06.
 
 =head1 SYNOPSIS
 
