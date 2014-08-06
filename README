@@ -3,8 +3,8 @@ NAME
     metadata
 
 VERSION
-    This document describes version 0.60 of Perinci::Sub::Complete (from
-    Perl distribution Perinci-Sub-Complete), released on 2014-07-29.
+    This document describes version 0.61 of Perinci::Sub::Complete (from
+    Perl distribution Perinci-Sub-Complete), released on 2014-08-06.
 
 SYNOPSIS
     See Perinci::CmdLine or Perinci::CmdLine::Lite or App::riap which use
@@ -165,15 +165,15 @@ FUNCTIONS
         handler). Will be passed to "get_args_from_argv()". Example:
 
          {
-             help => {
-                 getopt  => 'help|h|?',
-                 handler => sub { ... },
-                 summary => 'Display help and exit',
+             help =E<gt> {
+                 getopt  =E<gt> 'help|h|?',
+                 handler =E<gt> sub { ... },
+                 summary =E<gt> 'Display help and exit',
              },
-             version => {
-                 getopt  => 'version|v',
-                 handler => sub { ... },
-                 summary => 'Display version and exit',
+             version =E<gt> {
+                 getopt  =E<gt> 'version|v',
+                 handler =E<gt> sub { ... },
+                 summary =E<gt> 'Display version and exit',
              },
          }
 
@@ -249,7 +249,7 @@ FUNCTIONS
 
      (hash)
 
-    You can use "format_completion" function in "Complete::Bash" module to
+    You can use `format_completion` function in `Complete::Bash` module to
     format the result of this function for bash.
 
   complete_from_schema(%args) -> [status, msg, result, meta]

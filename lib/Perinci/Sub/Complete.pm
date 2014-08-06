@@ -1,7 +1,7 @@
 package Perinci::Sub::Complete;
 
-our $DATE = '2014-07-29'; # DATE
-our $VERSION = '0.60'; # VERSION
+our $DATE = '2014-08-06'; # DATE
+our $VERSION = '0.61'; # VERSION
 
 use 5.010001;
 use strict;
@@ -554,7 +554,11 @@ sub complete_cli_arg {
     my $cword  = $args{cword}; defined($cword) or die "Please specify cword";
     my $copts  = $args{common_opts} // {};
     my $comp   = $args{completion};
-    my $extras = $args{extras};
+    my $extras = {
+        words => $args{words},
+        cword => $args{cword},
+        %{ $args{extras} // {} },
+    };
 
     my $word   = $words->[$cword];
     my $args_p = $meta->{args} // {};
@@ -569,6 +573,16 @@ sub complete_cli_arg {
         unless $genres->[0] == 200;
     my $gospec = $genres->[2];
     my $specmeta = $genres->[3]{'func.specmeta'};
+
+    # provide completion routine with 'args' hash parsed from words, put it in
+    # 'extras'
+    {
+        my $gares = Perinci::Sub::GetArgs::Argv::get_args_from_argv(
+            argv => [@$words],
+            meta => $meta,
+        );
+        $extras->{args} = $gares->[2] if $gares->[0] == 200;
+    }
 
     my $copts_by_ospec = {};
     for (keys %$copts) { $copts_by_ospec->{$copts->{$_}{getopt}}=$copts->{$_} }
@@ -729,7 +743,7 @@ Perinci::Sub::Complete - Complete command-line argument using Rinci metadata
 
 =head1 VERSION
 
-This document describes version 0.60 of Perinci::Sub::Complete (from Perl distribution Perinci-Sub-Complete), released on 2014-07-29.
+This document describes version 0.61 of Perinci::Sub::Complete (from Perl distribution Perinci-Sub-Complete), released on 2014-08-06.
 
 =head1 SYNOPSIS
 
@@ -905,15 +919,15 @@ option specification), C<handler> (Getopt::Long handler). Will be passed to
 C<get_args_from_argv()>. Example:
 
  {
-     help => {
-         getopt  => 'help|h|?',
-         handler => sub { ... },
-         summary => 'Display help and exit',
+     help =E<gt> {
+         getopt  =E<gt> 'help|h|?',
+         handler =E<gt> sub { ... },
+         summary =E<gt> 'Display help and exit',
      },
-     version => {
-         getopt  => 'version|v',
-         handler => sub { ... },
-         summary => 'Display version and exit',
+     version =E<gt> {
+         getopt  =E<gt> 'version|v',
+         handler =E<gt> sub { ... },
+         summary =E<gt> 'Display version and exit',
      },
  }
 
@@ -993,7 +1007,7 @@ Return value:
 
  (hash)
 
-You can use C<format_completion> function in C<Complete::Bash> module to format
+You can use `format_completion` function in `Complete::Bash` module to format
 the result of this function for bash.
 
 
