@@ -1,7 +1,7 @@
 package Perinci::Sub::Complete;
 
-our $DATE = '2014-08-06'; # DATE
-our $VERSION = '0.62'; # VERSION
+our $DATE = '2014-09-03'; # DATE
+our $VERSION = '0.63'; # VERSION
 
 use 5.010001;
 use strict;
@@ -568,6 +568,7 @@ sub complete_cli_arg {
         common_opts  => $copts,
         per_arg_json => $args{per_arg_json},
         per_arg_yaml => $args{per_arg_yaml},
+        ignore_converted_code => 1,
     );
     die "Can't generate getopt spec from meta: $genres->[0] - $genres->[1]"
         unless $genres->[0] == 200;
@@ -744,7 +745,7 @@ Perinci::Sub::Complete - Complete command-line argument using Rinci metadata
 
 =head1 VERSION
 
-This document describes version 0.62 of Perinci::Sub::Complete (from Perl distribution Perinci-Sub-Complete), released on 2014-08-06.
+This document describes version 0.63 of Perinci::Sub::Complete (from Perl distribution Perinci-Sub-Complete), released on 2014-09-03.
 
 =head1 SYNOPSIS
 
@@ -1062,7 +1063,7 @@ Please visit the project's homepage at L<https://metacpan.org/release/Perinci-Su
 
 =head1 SOURCE
 
-Source repository is at L<https://github.com/sharyanto/perl-Perinci-Sub-Complete>.
+Source repository is at L<https://github.com/perlancar/perl-Perinci-Sub-Complete>.
 
 =head1 BUGS
 
@@ -1074,11 +1075,11 @@ feature.
 
 =head1 AUTHOR
 
-Steven Haryanto <stevenharyanto@gmail.com>
+perlancar <perlancar@cpan.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2014 by Steven Haryanto.
+This software is copyright (c) 2014 by perlancar@cpan.org.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.

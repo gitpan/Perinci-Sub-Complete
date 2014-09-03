@@ -11,7 +11,7 @@ use ExtUtils::MakeMaker 6.30;
 
 my %WriteMakefileArgs = (
   "ABSTRACT" => "Complete command-line argument using Rinci metadata",
-  "AUTHOR" => "Steven Haryanto <stevenharyanto\@gmail.com>",
+  "AUTHOR" => "perlancar <perlancar\@cpan.org>",
   "CONFIGURE_REQUIRES" => {
     "ExtUtils::MakeMaker" => "6.30"
   },
@@ -24,7 +24,7 @@ my %WriteMakefileArgs = (
     "Complete::Util" => "0.12",
     "Data::Sah::Normalize" => 0,
     "Log::Any" => 0,
-    "Perinci::Sub::GetArgs::Argv" => "0.50",
+    "Perinci::Sub::GetArgs::Argv" => "0.51",
     "Perinci::Sub::Util" => "0.38",
     "Rinci" => "v1.1.52",
     "experimental" => 0
@@ -39,7 +39,7 @@ my %WriteMakefileArgs = (
     "Perinci::Sub::Normalize" => 0,
     "Test::More" => "0.98"
   },
-  "VERSION" => "0.62",
+  "VERSION" => "0.63",
   "test" => {
     "TESTS" => "t/*.t"
   }
@@ -57,7 +57,7 @@ my %FallbackPrereqs = (
   "Log::Any" => 0,
   "Monkey::Patch::Action" => 0,
   "Perinci::Examples" => "0.27",
-  "Perinci::Sub::GetArgs::Argv" => "0.50",
+  "Perinci::Sub::GetArgs::Argv" => "0.51",
   "Perinci::Sub::Normalize" => 0,
   "Perinci::Sub::Util" => "0.38",
   "Rinci" => "v1.1.52",
