@@ -1,7 +1,7 @@
 package Perinci::Sub::Complete;
 
-our $DATE = '2014-09-03'; # DATE
-our $VERSION = '0.63'; # VERSION
+our $DATE = '2014-11-28'; # DATE
+our $VERSION = '0.64'; # VERSION
 
 use 5.010001;
 use strict;
@@ -445,7 +445,7 @@ sub complete_arg_elem {
 
 sub _hashify {
     return $_[0] if ref($_[0]) eq 'HASH';
-    {completion=>$_[0]};
+    {words=>$_[0]};
 }
 
 $SPEC{complete_cli_arg} = {
@@ -745,7 +745,7 @@ Perinci::Sub::Complete - Complete command-line argument using Rinci metadata
 
 =head1 VERSION
 
-This document describes version 0.63 of Perinci::Sub::Complete (from Perl distribution Perinci-Sub-Complete), released on 2014-09-03.
+This document describes version 0.64 of Perinci::Sub::Complete (from Perl distribution Perinci-Sub-Complete), released on 2014-11-28.
 
 =head1 SYNOPSIS
 
@@ -921,15 +921,15 @@ option specification), C<handler> (Getopt::Long handler). Will be passed to
 C<get_args_from_argv()>. Example:
 
  {
-     help =E<gt> {
-         getopt  =E<gt> 'help|h|?',
-         handler =E<gt> sub { ... },
-         summary =E<gt> 'Display help and exit',
+     help => {
+         getopt  => 'help|h|?',
+         handler => sub { ... },
+         summary => 'Display help and exit',
      },
-     version =E<gt> {
-         getopt  =E<gt> 'version|v',
-         handler =E<gt> sub { ... },
-         summary =E<gt> 'Display version and exit',
+     version => {
+         getopt  => 'version|v',
+         handler => sub { ... },
+         summary => 'Display version and exit',
      },
  }
 
@@ -1063,7 +1063,7 @@ Please visit the project's homepage at L<https://metacpan.org/release/Perinci-Su
 
 =head1 SOURCE
 
-Source repository is at L<https://github.com/perlancar/perl-Perinci-Sub-Complete>.
+Source repository is at L<https://github.com/sharyanto/perl-Perinci-Sub-Complete>.
 
 =head1 BUGS
 

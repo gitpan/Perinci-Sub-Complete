@@ -30,7 +30,7 @@ my %WriteMakefileArgs = (
     "experimental" => 0
   },
   "TEST_REQUIRES" => {
-    "Complete::Bash" => "0.09",
+    "Complete::Bash" => "0.12",
     "File::Spec" => 0,
     "IO::Handle" => 0,
     "IPC::Open3" => 0,
@@ -39,7 +39,7 @@ my %WriteMakefileArgs = (
     "Perinci::Sub::Normalize" => 0,
     "Test::More" => "0.98"
   },
-  "VERSION" => "0.63",
+  "VERSION" => "0.64",
   "test" => {
     "TESTS" => "t/*.t"
   }
@@ -47,7 +47,7 @@ my %WriteMakefileArgs = (
 
 
 my %FallbackPrereqs = (
-  "Complete::Bash" => "0.09",
+  "Complete::Bash" => "0.12",
   "Complete::Getopt::Long" => "0.13",
   "Complete::Util" => "0.12",
   "Data::Sah::Normalize" => 0,

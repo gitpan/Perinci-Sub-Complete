@@ -3,8 +3,8 @@ NAME
     metadata
 
 VERSION
-    This document describes version 0.63 of Perinci::Sub::Complete (from
-    Perl distribution Perinci-Sub-Complete), released on 2014-09-03.
+    This document describes version 0.64 of Perinci::Sub::Complete (from
+    Perl distribution Perinci-Sub-Complete), released on 2014-11-28.
 
 SYNOPSIS
     See Perinci::CmdLine or Perinci::CmdLine::Lite or App::riap which use
@@ -165,15 +165,15 @@ FUNCTIONS
         handler). Will be passed to "get_args_from_argv()". Example:
 
          {
-             help =E<gt> {
-                 getopt  =E<gt> 'help|h|?',
-                 handler =E<gt> sub { ... },
-                 summary =E<gt> 'Display help and exit',
+             help => {
+                 getopt  => 'help|h|?',
+                 handler => sub { ... },
+                 summary => 'Display help and exit',
              },
-             version =E<gt> {
-                 getopt  =E<gt> 'version|v',
-                 handler =E<gt> sub { ... },
-                 summary =E<gt> 'Display version and exit',
+             version => {
+                 getopt  => 'version|v',
+                 handler => sub { ... },
+                 summary => 'Display version and exit',
              },
          }
 
@@ -294,7 +294,7 @@ HOMEPAGE
 
 SOURCE
     Source repository is at
-    <https://github.com/perlancar/perl-Perinci-Sub-Complete>.
+    <https://github.com/sharyanto/perl-Perinci-Sub-Complete>.
 
 BUGS
     Please report any bugs or feature requests on the bugtracker website
