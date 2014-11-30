@@ -1,7 +1,7 @@
 package Perinci::Sub::Complete;
 
-our $DATE = '2014-11-28'; # DATE
-our $VERSION = '0.64'; # VERSION
+our $DATE = '2014-11-30'; # DATE
+our $VERSION = '0.65'; # VERSION
 
 use 5.010001;
 use strict;
@@ -745,7 +745,7 @@ Perinci::Sub::Complete - Complete command-line argument using Rinci metadata
 
 =head1 VERSION
 
-This document describes version 0.64 of Perinci::Sub::Complete (from Perl distribution Perinci-Sub-Complete), released on 2014-11-28.
+This document describes version 0.65 of Perinci::Sub::Complete (from Perl distribution Perinci-Sub-Complete), released on 2014-11-30.
 
 =head1 SYNOPSIS
 
@@ -1009,7 +1009,7 @@ Return value:
 
  (hash)
 
-You can use `format_completion` function in `Complete::Bash` module to format
+You can use C<format_completion> function in C<Complete::Bash> module to format
 the result of this function for bash.
 
 

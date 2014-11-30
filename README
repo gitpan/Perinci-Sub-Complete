@@ -3,8 +3,8 @@ NAME
     metadata
 
 VERSION
-    This document describes version 0.64 of Perinci::Sub::Complete (from
-    Perl distribution Perinci-Sub-Complete), released on 2014-11-28.
+    This document describes version 0.65 of Perinci::Sub::Complete (from
+    Perl distribution Perinci-Sub-Complete), released on 2014-11-30.
 
 SYNOPSIS
     See Perinci::CmdLine or Perinci::CmdLine::Lite or App::riap which use
@@ -249,7 +249,7 @@ FUNCTIONS
 
      (hash)
 
-    You can use `format_completion` function in `Complete::Bash` module to
+    You can use "format_completion" function in "Complete::Bash" module to
     format the result of this function for bash.
 
   complete_from_schema(%args) -> [status, msg, result, meta]
