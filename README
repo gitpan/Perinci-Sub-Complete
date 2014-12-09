@@ -3,8 +3,8 @@ NAME
     metadata
 
 VERSION
-    This document describes version 0.65 of Perinci::Sub::Complete (from
-    Perl distribution Perinci-Sub-Complete), released on 2014-11-30.
+    This document describes version 0.66 of Perinci::Sub::Complete (from
+    Perl distribution Perinci-Sub-Complete), released on 2014-12-09.
 
 SYNOPSIS
     See Perinci::CmdLine or Perinci::CmdLine::Lite or App::riap which use
