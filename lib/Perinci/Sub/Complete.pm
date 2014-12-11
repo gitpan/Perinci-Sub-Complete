@@ -1,7 +1,7 @@
 package Perinci::Sub::Complete;
 
-our $DATE = '2014-12-09'; # DATE
-our $VERSION = '0.66'; # VERSION
+our $DATE = '2014-12-11'; # DATE
+our $VERSION = '0.67'; # VERSION
 
 use 5.010001;
 use strict;
@@ -211,7 +211,7 @@ sub complete_from_schema {
     return undef unless $words;
     hashify_answer(
         complete_array_elem(array=>$words, word=>$word, ci=>$ci),
-        {static=>$static // 0},
+        {static=>$static && $word eq '' ? 1:0},
     );
 }
 
@@ -299,7 +299,7 @@ sub complete_arg_val {
             } elsif (ref($comp) eq 'ARRAY') {
                 $reply = complete_array_elem(
                     array=>$comp, word=>$word, ci=>$ci);
-                $static = $word eq '';
+                $static++;
                 return; # from eval
             }
 
@@ -341,7 +341,7 @@ sub complete_arg_val {
     }
 
     $reply = hashify_answer($reply);
-    $reply->{static} //= $static // 0;
+    $reply->{static} //= $static && $word eq '' ? 1:0;
     $reply;
 }
 
@@ -761,7 +761,7 @@ Perinci::Sub::Complete - Complete command-line argument using Rinci metadata
 
 =head1 VERSION
 
-This document describes version 0.66 of Perinci::Sub::Complete (from Perl distribution Perinci-Sub-Complete), released on 2014-12-09.
+This document describes version 0.67 of Perinci::Sub::Complete (from Perl distribution Perinci-Sub-Complete), released on 2014-12-11.
 
 =head1 SYNOPSIS
 
@@ -1079,7 +1079,7 @@ Please visit the project's homepage at L<https://metacpan.org/release/Perinci-Su
 
 =head1 SOURCE
 
-Source repository is at L<https://github.com/sharyanto/perl-Perinci-Sub-Complete>.
+Source repository is at L<https://github.com/perlancar/perl-Perinci-Sub-Complete>.
 
 =head1 BUGS
 

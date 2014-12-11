@@ -3,8 +3,8 @@ NAME
     metadata
 
 VERSION
-    This document describes version 0.66 of Perinci::Sub::Complete (from
-    Perl distribution Perinci-Sub-Complete), released on 2014-12-09.
+    This document describes version 0.67 of Perinci::Sub::Complete (from
+    Perl distribution Perinci-Sub-Complete), released on 2014-12-11.
 
 SYNOPSIS
     See Perinci::CmdLine or Perinci::CmdLine::Lite or App::riap which use
@@ -294,7 +294,7 @@ HOMEPAGE
 
 SOURCE
     Source repository is at
-    <https://github.com/sharyanto/perl-Perinci-Sub-Complete>.
+    <https://github.com/perlancar/perl-Perinci-Sub-Complete>.
 
 BUGS
     Please report any bugs or feature requests on the bugtracker website
