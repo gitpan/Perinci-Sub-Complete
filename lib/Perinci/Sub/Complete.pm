@@ -1,7 +1,7 @@
 package Perinci::Sub::Complete;
 
 our $DATE = '2014-12-20'; # DATE
-our $VERSION = '0.68'; # VERSION
+our $VERSION = '0.69'; # VERSION
 
 use 5.010001;
 use strict;
@@ -446,7 +446,7 @@ sub complete_arg_elem {
                 my $res = $args{riap_client}->request(
                     complete_arg_elem => $args{riap_server_url},
                     {(uri=>$args{riap_uri}) x !!defined($args{riap_uri}),
-                     arg=>$arg, word=>$word, ci=>$ci,
+                     arg=>$arg, args=>$args{args}, word=>$word, ci=>$ci,
                      index=>$index},
                 );
                 if ($res->[0] != 200) {
@@ -627,16 +627,11 @@ sub complete_cli_arg {
     my $gospec = $genres->[2];
     my $specmeta = $genres->[3]{'func.specmeta'};
 
-    # provide completion routine with 'args' hash parsed from words, put it in
-    # 'extras'
-    {
-        my $gares = Perinci::Sub::GetArgs::Argv::get_args_from_argv(
-            argv   => [@$words],
-            meta   => $meta,
-            strict => 0,
-        );
-        $extras->{args} = $gares->[2] if $gares->[0] == 200;
-    }
+    my $gares = Perinci::Sub::GetArgs::Argv::get_args_from_argv(
+        argv   => [@$words],
+        meta   => $meta,
+        strict => 0,
+    );
 
     my $copts_by_ospec = {};
     for (keys %$copts) { $copts_by_ospec->{$copts->{$_}{getopt}}=$copts->{$_} }
@@ -670,12 +665,13 @@ sub complete_cli_arg {
                 }
                 if ($ospec =~ /\@$/) {
                     return complete_arg_elem(
-                        meta=>$meta, arg=>$sm->{arg}, word=>$word, index=>$cargs{nth}, # XXX correct index
+                        meta=>$meta, arg=>$sm->{arg}, args=>$gares->[2],
+                        word=>$word, index=>$cargs{nth}, # XXX correct index
                         extras=>$extras, %rargs);
                 } else {
                     return complete_arg_val(
-                        meta=>$meta, arg=>$sm->{arg}, word=>$word,
-                        extras=>$extras, %rargs);
+                        meta=>$meta, arg=>$sm->{arg}, args=>$gares->[2],
+                        word=>$word, extras=>$extras, %rargs);
                 }
             } else {
                 $log->tracef("completing option value for a common option (ospec: %s)", $ospec);
@@ -727,8 +723,8 @@ sub complete_cli_arg {
                     return $res if $res;
                 }
                 return complete_arg_val(
-                    meta=>$meta, arg=>$an, word=>$word,
-                    extras=>$extras, %rargs);
+                    meta=>$meta, arg=>$an, args=>$gares->[2],
+                    word=>$word, extras=>$extras, %rargs);
             }
 
             # find if there is a greedy argument which takes elements at that
@@ -751,8 +747,8 @@ sub complete_cli_arg {
                     return $res if $res;
                 }
                 return complete_arg_elem(
-                    meta=>$meta, arg=>$an, word=>$word, index=>$index,
-                    extras=>$extras, %rargs);
+                    meta=>$meta, arg=>$an, args=>$gares->[2],
+                    word=>$word, index=>$index, extras=>$extras, %rargs);
             }
 
             $log->tracef("there is no matching function argument at this position");
@@ -795,7 +791,7 @@ Perinci::Sub::Complete - Complete command-line argument using Rinci metadata
 
 =head1 VERSION
 
-This document describes version 0.68 of Perinci::Sub::Complete (from Perl distribution Perinci-Sub-Complete), released on 2014-12-20.
+This document describes version 0.69 of Perinci::Sub::Complete (from Perl distribution Perinci-Sub-Complete), released on 2014-12-20.
 
 =head1 SYNOPSIS
 
