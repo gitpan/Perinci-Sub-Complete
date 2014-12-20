@@ -1,7 +1,7 @@
 package Perinci::Sub::Complete;
 
-our $DATE = '2014-12-11'; # DATE
-our $VERSION = '0.67'; # VERSION
+our $DATE = '2014-12-20'; # DATE
+our $VERSION = '0.68'; # VERSION
 
 use 5.010001;
 use strict;
@@ -21,6 +21,11 @@ our @EXPORT_OK = qw(
                        complete_cli_arg
                );
 our %SPEC;
+
+$SPEC{':package'} = {
+    v => 1.1,
+    summary => 'Complete command-line argument using Rinci metadata',
+};
 
 my %common_args_riap = (
     riap_client => {
@@ -221,8 +226,26 @@ $SPEC{complete_arg_val} = {
     description => <<'_',
 
 Will attempt to complete using the completion routine specified in the argument
-specification, or if that is not specified, from argument's schema using
-`complete_from_schema`.
+specification (the `completion` property, or in the case of `complete_arg_elem`
+function, the `element_completion` property), or if that is not specified, from
+argument's schema using `complete_from_schema`.
+
+Completion routine will get `%args`, with the following keys:
+
+* `word` (str, the word to be completed)
+* `ci` (bool, whether string matching should be case-insensitive)
+* `arg` (str, the argument name which value is currently being completed)
+* `index (int, only for the `complete_arg_elem` function, the index in the
+   argument array that is currently being completed, starts from 0)
+* `args` (hash, the argument hash to the function, so far)
+
+as well as extra keys from `extras` (but these won't overwrite the above
+standard keys).
+
+Completion routine should return a completion answer structure (described in
+`Complete`) which is either a hash or an array. The simplest form of answer is
+just to return an array of strings. Completion routine can also return undef to
+express declination.
 
 _
     args => {
@@ -250,8 +273,15 @@ _
             schema  => 'hash',
         },
         extras => {
-            summary => 'To pass extra arguments to completion routines',
+            summary => 'Add extra arguments to completion routine',
             schema  => 'hash',
+            description => <<'_',
+
+The keys from this `extras` hash will be merged into the final `%args` passed to
+completion routines. Note that standard keys like `word`, `cword`, `ci`, and so
+on as described in the function description will not be overwritten by this.
+
+_
         },
 
         %common_args_riap,
@@ -263,6 +293,8 @@ _
 };
 sub complete_arg_val {
     my %args = @_;
+
+    my $extras = $args{extras} // {};
 
     my $meta = $args{meta} or do {
         $log->tracef("meta is not supplied, declining");
@@ -293,8 +325,8 @@ sub complete_arg_val {
             $log->tracef("calling arg spec's completion");
             if (ref($comp) eq 'CODE') {
                 $reply = $comp->(
-                    word=>$word, ci=>$ci, args=>$args{args},
-                    extras=>$args{extras});
+                    %$extras,
+                    word=>$word, ci=>$ci, arg=>$arg, args=>$args{args});
                 return; # from eval
             } elsif (ref($comp) eq 'ARRAY') {
                 $reply = complete_array_elem(
@@ -363,6 +395,8 @@ sub complete_arg_elem {
 
     my %args = @_;
 
+    my $extras = $args{extras} // {};
+
     my $meta = $args{meta} or do {
         $log->tracef("meta is not supplied, declining");
         return undef;
@@ -396,8 +430,8 @@ sub complete_arg_elem {
             $log->tracef("calling arg spec's element_completion [$index]");
             if (ref($elcomp) eq 'CODE') {
                 $reply = $elcomp->(
-                    word=>$word, ci=>$ci, index=>$index,
-                    args=>$args{args}, extras=>$args{extras});
+                    %$extras,
+                    word=>$word, ci=>$ci, index=>$index, args=>$args{args});
                 return; # from eval
             } elsif (ref($elcomp) eq 'ARRAY') {
                 $reply = complete_array_elem(
@@ -460,7 +494,7 @@ sub complete_arg_elem {
     }
 
     $reply = hashify_answer($reply);
-    $reply->{static} //= $static;
+    $reply->{static} //= $static && $word eq '' ? 1:0;
     $reply;
 }
 
@@ -539,13 +573,15 @@ _
             schema => ['hash*'],
         },
         extras => {
-            summary => 'A hash that contains extra stuffs',
+            summary => 'Add extra arguments to completion routine',
+            schema  => 'hash',
             description => <<'_',
 
-Usually used to let completion routine get extra stuffs.
+The keys from this `extras` hash will be merged into the final `%args` passed to
+completion routines. Note that standard keys like `word`, `cword`, `ci`, and so
+on as described in the function description will not be overwritten by this.
 
 _
-            schema  => 'hash',
         },
         %common_args_riap,
     },
@@ -571,9 +607,9 @@ sub complete_cli_arg {
     my $copts  = $args{common_opts} // {};
     my $comp   = $args{completion};
     my $extras = {
+        %{ $args{extras} // {} },
         words => $args{words},
         cword => $args{cword},
-        %{ $args{extras} // {} },
     };
 
     my $word   = $words->[$cword];
@@ -612,8 +648,6 @@ sub complete_cli_arg {
         my $ospec = $cargs{ospec} // '';
         my $word  = $cargs{word};
         my $ci    = $cargs{ci};
-
-        $cargs{extras} = $extras;
 
         my %rargs = (
             riap_server_url => $args{riap_server_url},
@@ -761,7 +795,7 @@ Perinci::Sub::Complete - Complete command-line argument using Rinci metadata
 
 =head1 VERSION
 
-This document describes version 0.67 of Perinci::Sub::Complete (from Perl distribution Perinci-Sub-Complete), released on 2014-12-11.
+This document describes version 0.68 of Perinci::Sub::Complete (from Perl distribution Perinci-Sub-Complete), released on 2014-12-20.
 
 =head1 SYNOPSIS
 
@@ -778,8 +812,34 @@ this module.
 Given argument name and function metadata, complete array element.
 
 Will attempt to complete using the completion routine specified in the argument
-specification, or if that is not specified, from argument's schema using
-C<complete_from_schema>.
+specification (the C<completion> property, or in the case of C<complete_arg_elem>
+function, the C<element_completion> property), or if that is not specified, from
+argument's schema using C<complete_from_schema>.
+
+Completion routine will get C<%args>, with the following keys:
+
+=over
+
+=item * C<word> (str, the word to be completed)
+
+=item * C<ci> (bool, whether string matching should be case-insensitive)
+
+=item * C<arg> (str, the argument name which value is currently being completed)
+
+=item * C<index (int, only for the>complete_arg_elem` function, the index in the
+argument array that is currently being completed, starts from 0)
+
+=item * C<args> (hash, the argument hash to the function, so far)
+
+=back
+
+as well as extra keys from C<extras> (but these won't overwrite the above
+standard keys).
+
+Completion routine should return a completion answer structure (described in
+C<Complete>) which is either a hash or an array. The simplest form of answer is
+just to return an array of strings. Completion routine can also return undef to
+express declination.
 
 Arguments ('*' denotes required arguments):
 
@@ -799,7 +859,11 @@ Whether to be case-insensitive.
 
 =item * B<extras> => I<hash>
 
-To pass extra arguments to completion routines.
+Add extra arguments to completion routine.
+
+The keys from this C<extras> hash will be merged into the final C<%args> passed to
+completion routines. Note that standard keys like C<word>, C<cword>, C<ci>, and so
+on as described in the function description will not be overwritten by this.
 
 =item * B<index> => I<int>
 
@@ -851,8 +915,34 @@ Return value:
 Given argument name and function metadata, complete value.
 
 Will attempt to complete using the completion routine specified in the argument
-specification, or if that is not specified, from argument's schema using
-C<complete_from_schema>.
+specification (the C<completion> property, or in the case of C<complete_arg_elem>
+function, the C<element_completion> property), or if that is not specified, from
+argument's schema using C<complete_from_schema>.
+
+Completion routine will get C<%args>, with the following keys:
+
+=over
+
+=item * C<word> (str, the word to be completed)
+
+=item * C<ci> (bool, whether string matching should be case-insensitive)
+
+=item * C<arg> (str, the argument name which value is currently being completed)
+
+=item * C<index (int, only for the>complete_arg_elem` function, the index in the
+argument array that is currently being completed, starts from 0)
+
+=item * C<args> (hash, the argument hash to the function, so far)
+
+=back
+
+as well as extra keys from C<extras> (but these won't overwrite the above
+standard keys).
+
+Completion routine should return a completion answer structure (described in
+C<Complete>) which is either a hash or an array. The simplest form of answer is
+just to return an array of strings. Completion routine can also return undef to
+express declination.
 
 Arguments ('*' denotes required arguments):
 
@@ -872,7 +962,11 @@ Whether to be case-insensitive.
 
 =item * B<extras> => I<hash>
 
-To pass extra arguments to completion routines.
+Add extra arguments to completion routine.
+
+The keys from this C<extras> hash will be merged into the final C<%args> passed to
+completion routines. Note that standard keys like C<word>, C<cword>, C<ci>, and so
+on as described in the function description will not be overwritten by this.
 
 =item * B<meta>* => I<hash>
 
@@ -973,9 +1067,11 @@ On which argument cursor is located (zero-based).
 
 =item * B<extras> => I<hash>
 
-A hash that contains extra stuffs.
+Add extra arguments to completion routine.
 
-Usually used to let completion routine get extra stuffs.
+The keys from this C<extras> hash will be merged into the final C<%args> passed to
+completion routines. Note that standard keys like C<word>, C<cword>, C<ci>, and so
+on as described in the function description will not be overwritten by this.
 
 =item * B<meta>* => I<hash>
 
@@ -1079,7 +1175,7 @@ Please visit the project's homepage at L<https://metacpan.org/release/Perinci-Su
 
 =head1 SOURCE
 
-Source repository is at L<https://github.com/perlancar/perl-Perinci-Sub-Complete>.
+Source repository is at L<https://github.com/sharyanto/perl-Perinci-Sub-Complete>.
 
 =head1 BUGS
 
